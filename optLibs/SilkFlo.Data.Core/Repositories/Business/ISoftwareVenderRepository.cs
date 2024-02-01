@@ -1,0 +1,48 @@
+﻿// Decompiled with JetBrains decompiler
+// Type: SilkFlo.Data.Core.Repositories.Business.ISoftwareVenderRepository
+// Assembly: SilkFlo.Data.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+// MVID: 36C13AAB-6F0A-4973-BB89-665E3C9E4420
+// Assembly location: C:\workspace\SilkFlo\Library\SilkFlo.Data.Core.dll
+
+using SilkFlo.Data.Core.Domain.Business;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace SilkFlo.Data.Core.Repositories.Business
+{
+  public interface ISoftwareVenderRepository
+  {
+    bool IncludeDeleted { get; set; }
+
+    Task<SoftwareVender> GetAsync(string id);
+
+    Task<SoftwareVender> SingleOrDefaultAsync(Func<SoftwareVender, bool> predicate);
+
+    Task<bool> AddAsync(SoftwareVender entity);
+
+    Task<bool> AddRangeAsync(IEnumerable<SoftwareVender> entities);
+
+    Task<IEnumerable<SoftwareVender>> GetAllAsync();
+
+    Task<IEnumerable<SoftwareVender>> FindAsync(Func<SoftwareVender, bool> predicate);
+
+    Task<SoftwareVender> GetUsingNameAsync(string name);
+
+    Task GetForClientAsync(Client client);
+
+    Task GetForClientAsync(IEnumerable<Client> clients);
+
+    Task GetVenderForAsync(RunningCost runningCost);
+
+    Task GetVenderForAsync(IEnumerable<RunningCost> runningCosts);
+
+    Task<SoftwareVender> GetByNameAsync(string name);
+
+    Task<DataStoreResult> RemoveAsync(string id);
+
+    Task<DataStoreResult> RemoveAsync(SoftwareVender entity);
+
+    Task<DataStoreResult> RemoveRangeAsync(IEnumerable<SoftwareVender> entities);
+  }
+}

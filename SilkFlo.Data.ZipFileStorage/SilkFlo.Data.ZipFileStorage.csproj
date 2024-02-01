@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LinqKit" Version="1.2.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.15" />
+    <PackageReference Include="PetaPoco.Compiled" Version="6.0.617" />
+    <PackageReference Include="System.Runtime.Caching" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SilkFlo.Data.Core\SilkFlo.Data.Core.csproj" />
+    <ProjectReference Include="..\SilkFlo.Email\SilkFlo.Email.csproj" />
+    <!--<ProjectReference Include="..\SilkFlo.Extensions\SilkFlo.Extensions.csproj" />-->
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--<Reference Include="SilkFlo.Extensions">
+      <HintPath>..\Library\SilkFlo.Extensions.dll</HintPath>
+    </Reference>-->
+    <Reference Include="SilkFlo.Payment">
+      <HintPath>..\Library\SilkFlo.Payment.dll</HintPath>
+    </Reference>
+    <Reference Include="SilkFlo.Security">
+      <HintPath>..\Library\SilkFlo.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="Stripe.net">
+      <HintPath>..\Library\Stripe.net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,107 @@
+﻿// Decompiled with JetBrains decompiler
+// Type: SilkFlo.Data.Core.Domain.Business.Recipient
+// Assembly: SilkFlo.Data.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+// MVID: 36C13AAB-6F0A-4973-BB89-665E3C9E4420
+// Assembly location: C:\workspace\SilkFlo\Library\SilkFlo.Data.Core.dll
+
+using PetaPoco;
+using System.Runtime.Serialization;
+using System.Xml.Serialization;
+
+namespace SilkFlo.Data.Core.Domain.Business
+{
+    [TableName("Recipients")]
+  [XmlType(Namespace = "Business")]
+  public class Recipient : Abstract
+  {
+    private string _id = "";
+    private Comment _comment;
+    private string _commentId;
+    private User _user;
+    private string _userId;
+
+    public Recipient() => this._createdDate = new System.DateTime?(System.DateTime.Now);
+
+        [Ignore]
+        public override bool IsNew => string.IsNullOrWhiteSpace(this.Id);
+
+    public string Id
+    {
+      get => this._id;
+      set
+      {
+        value = value?.Trim();
+        if (this._id == value)
+          return;
+        this._id = value;
+        this.IsSaved = false;
+      }
+    }
+
+    public string CommentString { get; set; }
+
+        [Ignore]
+        [IgnoreDataMember]
+    [XmlIgnore]
+    public Comment Comment
+    {
+      get => this._comment;
+      set
+      {
+        if (this._comment == value)
+          return;
+        this._comment = value;
+        this.CommentString = value == null ? "" : value.ToString();
+      }
+    }
+
+    public string CommentId
+    {
+      get => this._comment != null ? this._comment.Id : this._commentId;
+      set
+      {
+        value = value?.Trim();
+        this._commentId = value;
+        if (this._comment != null && this._comment.Id != this._commentId)
+          this._comment = (Comment) null;
+        this.IsSaved = false;
+      }
+    }
+
+    public string UserString { get; set; }
+
+        [Ignore]
+        [IgnoreDataMember]
+    [XmlIgnore]
+    public User User
+    {
+      get => this._user;
+      set
+      {
+        if (this._user == value)
+          return;
+        this._user = value;
+        this.UserString = value == null ? "" : value.ToString();
+      }
+    }
+
+    public string UserId
+    {
+      get => this._user != null ? this._user.Id : this._userId;
+      set
+      {
+        value = value?.Trim();
+        this._userId = value;
+        if (this._user != null && this._user.Id != this._userId)
+          this._user = (User) null;
+        this.IsSaved = false;
+      }
+    }
+
+    public void Update(Recipient recipient)
+    {
+      this.CommentId = recipient.CommentId;
+      this.UserId = recipient.UserId;
+    }
+  }
+}

@@ -1,0 +1,343 @@
+@model SilkFlo.Web.ViewModels.Workshop.Page
+
+<style>
+	#loader {
+		border: 16px solid #f3f3f3;
+		border-top: 16px solid #8897A2;
+		border-radius: 50%;
+		width: 30px;
+		height: 30px;
+		animation: spin 1s linear infinite;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+	}
+
+	#spin {
+		0%
+
+	{
+		transform: rotate(0deg);
+	}
+
+	100% {
+		transform: rotate(360deg);
+	}
+</style>
+
+<div class="container silkflo_tile_container"
+	 id="workshopContainer">
+
+	@*Titles*@
+	<div class="TitleBar">
+		<h1>Workshop</h1>
+		<h2>Automation Pipeline</h2>
+
+		<div class="d-flex justify-content-end">
+			<div style="display: inline-block; margin-bottom: 1rem; margin-right: 10px;">
+				<button type="button" class="btn btn-warning" onclick="showImportModal()">  
+					<img src="~/Icons/fileuploadicons/excel.png" style="height: 20px" />
+					<span> Import</span>
+				</button>
+			</div>
+		</div>
+
+		@*Tab Bar*@
+		<div class="silkflo-tab">
+			@foreach (var stageGroup in Model.StageGroups)
+			{
+				var stage = stageGroup.Replace(" ", "");
+				var url = $"{stage}";
+
+				var elementClass = "silkflo-tab-label";
+
+				if (string.Equals(stage, Model.StageGroup, StringComparison.CurrentCultureIgnoreCase))
+					elementClass += " active";
+
+				<h3 class="@elementClass"
+				id="@stage"
+				onclick="SilkFlo.ViewModels.Workshop.GetContent ( this );"
+				url="@url">
+					@stageGroup
+				</h3>
+			}
+		</div>
+	</div>
+
+	@*Content*@
+	@{
+		var urlCurrent = $"Workshop/StageGroup/{Model.StageGroup}";
+	}
+	<div id="WorkshopContent"
+		 url="@urlCurrent">
+		@if (Model.StageGroup == "Deployed")
+		{
+			@await Html.PartialAsync("Workshop/Deployed/_Summary", await Model.PipeLine.GetPipeLineDeployed(Model.Product))
+		}
+		else
+		{
+			@await Html.PartialAsync("Workshop/_PipeLine", Model.PipeLine)
+		}
+	</div>
+
+	<div class="modal fade"
+		 id="UploadPipelineModal"
+		 tabindex="-1"
+		 aria-labelledby="myModalLabel"
+		 aria-hidden="true">
+		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 646px">
+			<form class="row" style="margin-top:0 !important">
+				<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
+
+				<br />
+				<span style="padding-left: 815px; font-family: 'Poppins', sans-serif; font-size: 14px; color: #353535; text-decoration: underline;margin-top:10px">Step 1 of 4</span>
+				<span style=" padding-left: 120px;font-weight: bold; font-size: 28px; font-family: 'Manrope', sans-serif; color: black">Import pipeline from Excel > SilkFlo</span>
+				<br />
+				<span style=" padding-left: 120px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 16px;">Move your pipeline data from an Excel spreadsheet into SilkFlo</span>
+				<br />
+
+				<span style=" padding-left: 120px; color:#8E9CA7 ; font-family: 'Poppins', sans-serif; font-size: 16px; margin-top:10px">First, <span style="color: #2F80ED;  cursor: pointer; " id="DownloadTemplate">Download</span> our template Excel file.</span>
+
+				<div class="col-12" style="margin-top: 25px;">
+					<div id="dropZone" style=" background-color: white; border-color:#ff8a00; margin-inline: auto; margin-top: 0; flex: 0.5; height: 209px; width: 802px;" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
+
+						<span style="color: black; font-family: 'Poppins', sans-serif; font-size: 19px; font-weight: bold; margin-top:15px">Upload Excel Files</span>
+
+
+						<span style="font-family: 'Poppins', sans-serif; font-size: 16px; color: #8E9CA7; background-color: white; border-radius: 5px; cursor: pointer; display: inline-block;">Browse your device to add Excel files<input type="file" style="display: none;"></span>
+						<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+							<input id="fileElem" type="file" style="display: none;" onchange="onFileElemChange2()" multiple="multiple" />
+							<label style="width: 108px; height: 48px; text-align: center; color: #FFFFFF; font-size: 16px; background-color: #ff8a00; padding: 10px; cursor: pointer; border-radius: 6px" for="fileElem">Browse</label>
+						</div>
+
+						<span id="fileLabel" style="font-family: 'Poppins', sans-serif; font-size: 16px; color: #8E9CA7; padding-top: 7px;">No file selected</span>
+					</div>
+					<br />
+
+					<span style="padding-left: 320px; font-family: 'Poppins', sans-serif; font-size: 19px; font-weight: bold; color: black; display: inline-block;">Need help getting started?</span>
+					<br />					
+					<span style="padding-left: 290px; color:#8E9CA7 ; font-family: 'Poppins', sans-serif; font-size: 16px;"><a href="https://silkflo.com/docs/import-ideas-to-SilkFlo-from-Excel" target="_blank"><span style="color: #2F80ED; ">Read and learn</span></a> about uploading to SilkFlo</span>
+
+				</div>
+
+				<div class="col-12" style="margin-top: 5px; justify-content: flex-end; display: flex;">
+
+
+					<button type="button"
+							onclick="btnTFilesUpload()"
+							class="btn btn-primary"
+							style="background: #ff8a00; border: 0; width:82px; height:48px; border-radius: 6px; font-size: 19px;margin-right: 45px;">
+						Next
+					</button>
+				</div>
+
+
+			</form>
+
+
+		</div>
+
+
+	</div>
+
+	<div class="modal fade"
+		 id="ShowUploadPipelineMessageModal"
+		 tabindex="-1"
+		 aria-labelledby="myModalLabel"
+		 aria-hidden="true">
+		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 646px">
+			<form class="row" style="margin-top:0 !important">
+
+				<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
+
+				<br />
+				<span style="padding-left: 815px; font-family: 'Poppins', sans-serif; font-size: 14px; color: black; text-decoration: underline; margin-top:10px">Step 2 of 4</span>
+				<br />
+				<span style="padding-left: 100px; font-weight: bold; font-size: 25px; font-family: 'Manrope', sans-serif;">Import pipeline from Excel > SilkFlo</span>
+				<br />
+				<span style=" padding-left: 100px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 16px;">Move your pipeline data from an Excel spreadsheet into SilkFlo</span>
+				<div style="margin-top:	105px; text-align: center; margin-left:420px">
+					<!-- Centering the checkmark div -->
+					<div style="width:50px;height:50px;background-color:#4ECB71;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative; color:white; font-size: 30px;">
+						&#10003;
+					</div>
+				</div>
+
+				<span style="margin-top:20px; color:black;font-family:'Poppins',sans-serif;font-size:16px;text-align:center;">Your file has been uploaded successfully.</span>
+
+				<div class="col-12" style="margin-top: 55px; justify-content: flex-end; display: flex;">
+
+
+					<button type="button"
+							onclick="btnShowUploadFileModal()"
+							class="btn btn-primary"
+							style="background: #ffffff; border: 2px solid #ff8a00; border-radius: 6px; margin-right: 750px; margin-top:110px; color: #ff8a00; width:82px; height:48px">
+						Back
+					</button>
+					<button type="button"
+							onclick="btnShowFileData()"
+							class="btn btn-primary"
+							style="background: #ff8a00; border: 0;margin-top:110px; border-radius: 6px;margin-right:10px; width:82px; height:48px">
+						Next
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<div class="modal fade" id="ShowDataPipelineModal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 646px">
+			<form class="row" style="margin-top:0 !important">
+
+				<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
+				<span style="padding-left: 815px; font-family: 'Poppins', sans-serif; font-size: 14px; color: black; text-decoration: underline; margin-top:10px">Step 3 of 4</span>
+				<span style="padding-left: 100px; font-weight: bold; font-size: 25px; font-family: 'Manrope', sans-serif;">Let's verify your data</span>
+				<span style=" padding-left: 100px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 16px; margin-bottom: 10px;">Double check that your data is correct.</span>
+
+				<div style="overflow-x: auto; overflow-y: auto; max-height: 330px; margin-left:-5px;">
+
+					<table id="Coedatalist" class="table table-striped dataTable table-bordered">
+						<thead style="position: sticky; top: 0; background-color: #ffffff;">
+							<tr>
+								<td><strong></strong></td>
+								<td><strong>Name</strong></td>
+								<td><strong>CreatedDate</strong></td>
+								<td><strong>SubmitterEmailAddress</strong></td>
+								<td><strong>ProcessOwnerEmailAddress</strong></td>
+								<td><strong>AutomationId</strong></td>
+								<td><strong style="padding:300px">Description</strong></td>
+								<td><strong>DepartmentId</strong></td>
+								<td><strong>TeamId</strong></td>
+								<td><strong>ProcessId</strong></td>
+								<td><strong>Stage</strong></td>
+								<td><strong>Status</strong></td>
+								<td><strong>DeployeementDate</strong></td>
+								<td><strong>RuleId</strong></td>
+								<td><strong>InputId</strong></td>
+								<td><strong>InputDataStructureId</strong></td>
+								<td><strong>ProcessStabilityId</strong></td>
+								<td><strong>DocumentationPresentId</strong></td>
+								<td><strong>AutomationGoalId</strong></td>
+								<td><strong>ApplicationStabilityId</strong></td>
+								<td><strong>TaskFrequencyId</strong></td>
+								<td><strong>AverageReviewTimeComment</strong></td>
+								<td><strong>ProcessPeakId</strong></td>
+								<td><strong>AverageNumberOfStepId</strong></td>
+								<td><strong>NumberOfWaysToCompleteProcessId</strong></td>
+								<td><strong>DataInputPercentOfStructuredId</strong></td>
+								<td><strong>DecisionCountId</strong></td>
+								<td><strong>DecisionDifficultyId</strong></td>
+								<td><strong>AverageWorkingDay</strong></td>
+								<td><strong>AverageEmployeeFullCost</strong></td>
+								<td><strong>ActivityVolumeAverage</strong></td>
+								<td><strong>EmployeeCount</strong></td>
+								<td><strong>AverageErrorRate</strong></td>
+								<td><strong>WorkingHour</strong></td>
+								<td><strong>AverageProcessingTime</strong></td>
+								<td><strong>AverageReworkTime</strong></td>
+								<td><strong>AverageWorkToBeReviewed</strong></td>
+								<td><strong>PotentialFineAmount</strong></td>
+								<td><strong>PotentialFineProbability</strong></td>
+								<td><strong>IsHighRisk</strong></td>
+								<td><strong>IsDataSensitive</strong></td>
+								<td><strong>IsAlternative</strong></td>
+								<td><strong>IsHostUpgrade</strong></td>
+								<td><strong>IsDataInputScanned</strong></td>
+								<td><strong>Action</strong></td>
+							</tr>
+						</thead>
+						<tbody id="Coedata">
+						</tbody>
+					</table>
+
+				</div>
+				<br />
+				<span id="EmptyFileText" style="color: red; display: none; display:none; margin-left:350px">Your File Is Empty</span>
+
+				<span id="duplicateIdeasText" style="color: red; display: none; display:none; margin-left:20px">Duplicate ideas found.</span>
+
+				<div class="col-12" style="margin-top: 30px; justify-content: flex-end; display: flex;">
+
+					<button type="button"
+							id=""
+							onclick="btnShowUploadPipelineMessageModal()"
+							class="btn btn-primary"
+							style="background: #ffffff; border: 2px solid #ff8a00; border-radius: 6px; color: #ff8a00; width:82px; height:48px">
+						Back
+					</button>
+					<button type="button"
+							onclick="saveCOEData()"
+							class="btn btn-primary"
+							style="background: #ff8a00; border: 0; border-radius: 6px;margin-left: 650px; width:140px; height:48px">
+						Start Import
+					</button>
+				</div>
+			</form>
+
+		</div>
+	</div>
+
+	<div class="modal fade" id="ShowDataProcessingModal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 646px">
+
+			<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
+			<span style="padding-left: 815px; font-family: 'Poppins', sans-serif; font-size: 14px; color: black; text-decoration: underline; margin-top:10px">Step 4 of 4</span>
+			<br />
+			<span style="padding-left: 260px; font-weight: bold; font-size: 28px; font-family: 'Manrope', sans-serif;">Your data is being imported..</span>
+			<br />
+			<div style="margin-top: 80px; display: inline-block;">
+				<img src="~/Icons/fileuploadicons/excel.png" style="height: 40px; float: left; margin-left: 350px;" />
+
+				<div style="width: 30px; height: 30px; border-radius: 50%; background-color: #2F80ED; display: inline-flex; align-items: center; justify-content: center; margin-left: 50px; ">
+					<img src="~/Icons/Arrow Right.svg" style="height: 30px; filter: invert(100%);" />
+				</div>
+				<div>
+					<img src="~/Icons/Logo.svg" style="height: 40px; float: left; margin-left: 130px; margin-top: -35px;" />
+
+				</div>
+			</div>
+			<br />
+			<div style="width: 50%; height: 6px;  background: linear-gradient(to right,  #2F80ED 50%, #D9DBE9 50%); margin: 20px auto; margin-bottom:200px;"></div>
+
+			<div style="margin-left: 400px; margin-top:180px" id="loader"></div>
+
+		</div>
+	</div>
+
+	<div class="modal fade" id="ShowResultModal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 646px">
+
+			<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
+			<br />
+			<span style="padding-left: 250px; font-weight: bold; font-size: 28px; font-family: 'Manrope', sans-serif;">Your data has been imported!</span>
+			<br />
+			<div style="margin-top: 80px; display: inline-block; margin-left: 270px;">
+				<div style="width:50px;height:50px; margin-left:160px;  background-color:#4ECB71;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative; color:white; font-size: 30px;">
+					&#10003;
+				</div>
+			</div>
+			<br />
+
+			<span style="padding-left: 100px; margin-left: 250px; margin-bottom:100px; font-weight: bold; font-size: 16px; font-family: 'Manrope', sans-serif;"><span style="font-weight: bold; font-size: 16px; font-family: 'Manrope', sans-serif;" id="SuccessIdeaCounter"> </span> ideas have been added!</span>
+
+
+			<button type="button"
+					id="FinishPipelinemodals"
+					onclick="FinishPipelinemodals()"
+					class="btn btn-primary"
+					style="background: #ff8a00; border: 0; border-radius: 8px; margin-top: 100px; margin-left: 800px;">
+				Finish
+			</button>
+		</div>
+
+
+	</div>
+</div>
+
+<script>
+		
+</script>
+
+
+
+
