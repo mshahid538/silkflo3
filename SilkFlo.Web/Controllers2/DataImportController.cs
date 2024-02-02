@@ -32,7 +32,16 @@ namespace SilkFlo.Web.Controllers
 				List<COEBulkIdeaModel> rows = null;
 				if (File.FileName.ToLower().Contains(".xlsx") || File.FileName.ToLower().Contains(".xls"))
 				{
-					rows = await UploadCeoExcelFile(File);
+					var uploadResult = await UploadCeoExcelFile(File);
+
+
+					if (!uploadResult.success)
+					{
+						return Ok(new { status = false, message = uploadResult.message });
+					}
+
+					rows = uploadResult.rows;
+
 				}
 				else
 				{
@@ -225,7 +234,7 @@ namespace SilkFlo.Web.Controllers
 		}
 
 
-		public async Task<List<COEBulkIdeaModel>> UploadCeoExcelFile(IFormFile file)
+		public async Task<(bool success, string message,List<COEBulkIdeaModel> rows)> UploadCeoExcelFile(IFormFile file)
 		{
 			List<COEBulkIdeaModel> rows = new List<COEBulkIdeaModel>();
 			try
@@ -245,60 +254,79 @@ namespace SilkFlo.Web.Controllers
 
 				DateTime CreatedDate = DateTime.Now;
 				string formattedDate = CreatedDate.ToString("yyyy-MM-dd");
-				for (int i = 3; i < dataSet.Tables[0].Rows.Count; i++)
 
-				{
-						var fileReader = new COEBulkIdeaModel
+					if ((dataSet.Tables[0].Rows[1].ItemArray[0].ToString() == "Name of Automation*") &&
+				 (dataSet.Tables[0].Rows[1].ItemArray[1].ToString() == "Date Submitted") &&
+				  (dataSet.Tables[0].Rows[1].ItemArray[2].ToString() == "Submitter's Email Address *") &&
+					(dataSet.Tables[0].Rows[1].ItemArray[5].ToString() == "Description *"))
+
 					{
-						Name = dataSet.Tables[0].Rows[i].ItemArray[0] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[0]) : string.Empty,
-						CreatedDate = formattedDate,
-						SubmitterEmailAddress = dataSet.Tables[0].Rows[i].ItemArray[2] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[2]) : string.Empty,
-						ProcessOwnerEmailAddress = dataSet.Tables[0].Rows[i].ItemArray[3] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[3]) : string.Empty,
-						AutomationId = dataSet.Tables[0].Rows[i].ItemArray[4] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[4]) : string.Empty,
-						Description = dataSet.Tables[0].Rows[i].ItemArray[5] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[5]) : string.Empty,
-						DepartmentId = dataSet.Tables[0].Rows[i].ItemArray[6] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[6]) : string.Empty,
-						TeamId = dataSet.Tables[0].Rows[i].ItemArray[7] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[7]) : string.Empty,
-						ProcessId = dataSet.Tables[0].Rows[i].ItemArray[8] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[8]) : string.Empty,
-						Stage = dataSet.Tables[0].Rows[i].ItemArray[9] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[9]) : string.Empty,
-						Status = dataSet.Tables[0].Rows[i].ItemArray[10] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[10]) : string.Empty,
-						DeployeementDate = DateTime.TryParse(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[11]), out DateTime deployeementDate) ? deployeementDate : DateTime.MinValue,
-						RuleId = dataSet.Tables[0].Rows[i].ItemArray[12] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[12]) : string.Empty,
-						InputId = dataSet.Tables[0].Rows[i].ItemArray[13] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[13]) : string.Empty,
-						InputDataStructureId = dataSet.Tables[0].Rows[i].ItemArray[14] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[14]) : string.Empty,
-						ProcessStabilityId = dataSet.Tables[0].Rows[i].ItemArray[15] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[15]) : string.Empty,
-						DocumentationPresentId = dataSet.Tables[0].Rows[i].ItemArray[16] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[16]) : string.Empty,
-						AutomationGoalId = dataSet.Tables[0].Rows[i].ItemArray[17] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[17]) : string.Empty,
-						ApplicationStabilityId = dataSet.Tables[0].Rows[i].ItemArray[18] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[18]) : string.Empty,
-						AverageWorkingDay = dataSet.Tables[0].Rows[i].ItemArray[19] != null ? int.Parse(dataSet.Tables[0].Rows[i].ItemArray[19].ToString()) : 0,
-						WorkingHour = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[20]?.ToString(), out decimal workingHourResult) ? workingHourResult : 0.0m,
-						AverageEmployeeFullCost = dataSet.Tables[0].Rows[i].ItemArray[21] != null ? int.Parse(dataSet.Tables[0].Rows[i].ItemArray[21].ToString()) : 0,
-						EmployeeCount = dataSet.Tables[0].Rows[i].ItemArray[22] != null ? int.Parse(dataSet.Tables[0].Rows[i].ItemArray[22].ToString()) : 0,
-						TaskFrequencyId = dataSet.Tables[0].Rows[i].ItemArray[23] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[23]) : string.Empty,
-						ActivityVolumeAverage = dataSet.Tables[0].Rows[i].ItemArray[24] != null ? int.Parse(dataSet.Tables[0].Rows[i].ItemArray[24].ToString()) : 0,
-						AverageProcessingTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[25]?.ToString(), out decimal averageProcessingTimeResult) ? averageProcessingTimeResult : 0.0m,
-						AverageErrorRate = dataSet.Tables[0].Rows[i].ItemArray[26] != null ? int.Parse(dataSet.Tables[0].Rows[i].ItemArray[26].ToString()) : 0,
-						AverageReworkTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[27]?.ToString(), out decimal averageReworkTimeResult) ? averageReworkTimeResult : 0.0m,
-						AverageWorkToBeReviewed = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[28]?.ToString(), out decimal averageWorkToBeReviewedResult) ? averageWorkToBeReviewedResult : 0.0m,
-						AverageReviewTimeComment = dataSet.Tables[0].Rows[i].ItemArray[29] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[29]) : string.Empty,
-						ProcessPeakId = dataSet.Tables[0].Rows[i].ItemArray[30] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[30]) : string.Empty,
-						AverageNumberOfStepId = dataSet.Tables[0].Rows[i].ItemArray[31] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[31]) : string.Empty,
-						NumberOfWaysToCompleteProcessId = dataSet.Tables[0].Rows[i].ItemArray[32] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[32]) : string.Empty,
-						DataInputPercentOfStructuredId = dataSet.Tables[0].Rows[i].ItemArray[33] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[33]) : string.Empty,
-						DecisionCountId = dataSet.Tables[0].Rows[i].ItemArray[34] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[34]) : string.Empty,
-						DecisionDifficultyId = dataSet.Tables[0].Rows[i].ItemArray[35] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[35]) : string.Empty,
-						PotentialFineAmount = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[36]?.ToString(), out decimal potentialFineAmountResult) ? potentialFineAmountResult : 0.0m,
-						PotentialFineProbability = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[37]?.ToString(), out decimal potentialFineProbabilityResult) ? potentialFineProbabilityResult : 0.0m,
-						IsHighRisk = dataSet.Tables[0].Rows[i].ItemArray[38] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[38]) : string.Empty,
-						IsDataSensitive = dataSet.Tables[0].Rows[i].ItemArray[39] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[39]) : string.Empty,
-						IsAlternative = dataSet.Tables[0].Rows[i].ItemArray[40] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[40]) : string.Empty,
-						IsHostUpgrade = dataSet.Tables[0].Rows[i].ItemArray[41] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[41]) : string.Empty,
-						IsDataInputScanned = dataSet.Tables[0].Rows[i].ItemArray[42] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[42]) : string.Empty,
-					};
+						for (int i = 3; i < dataSet.Tables[0].Rows.Count; i++)
 
-					rows.Add(fileReader);
+						{
+							var fileReader = new COEBulkIdeaModel
+							{
+								Name = dataSet.Tables[0].Rows[i].ItemArray[0] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[0]) : string.Empty,
+								CreatedDate = formattedDate,
+								SubmitterEmailAddress = dataSet.Tables[0].Rows[i].ItemArray[2] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[2]) : string.Empty,
+								ProcessOwnerEmailAddress = dataSet.Tables[0].Rows[i].ItemArray[3] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[3]) : string.Empty,
+								AutomationId = dataSet.Tables[0].Rows[i].ItemArray[4] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[4]) : string.Empty,
+								Description = dataSet.Tables[0].Rows[i].ItemArray[5] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[5]) : string.Empty,
+								DepartmentId = dataSet.Tables[0].Rows[i].ItemArray[6] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[6]) : string.Empty,
+								TeamId = dataSet.Tables[0].Rows[i].ItemArray[7] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[7]) : string.Empty,
+								ProcessId = dataSet.Tables[0].Rows[i].ItemArray[8] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[8]) : string.Empty,
+								Stage = dataSet.Tables[0].Rows[i].ItemArray[9] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[9]) : string.Empty,
+								Status = dataSet.Tables[0].Rows[i].ItemArray[10] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[10]) : string.Empty,
+								DeployeementDate = DateTime.TryParse(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[11]), out DateTime deployeementDate) ? deployeementDate : DateTime.MinValue,
+								RuleId = dataSet.Tables[0].Rows[i].ItemArray[12] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[12]) : string.Empty,
+								InputId = dataSet.Tables[0].Rows[i].ItemArray[13] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[13]) : string.Empty,
+								InputDataStructureId = dataSet.Tables[0].Rows[i].ItemArray[14] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[14]) : string.Empty,
+								ProcessStabilityId = dataSet.Tables[0].Rows[i].ItemArray[15] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[15]) : string.Empty,
+								DocumentationPresentId = dataSet.Tables[0].Rows[i].ItemArray[16] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[16]) : string.Empty,
+								AutomationGoalId = dataSet.Tables[0].Rows[i].ItemArray[17] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[17]) : string.Empty,
+								ApplicationStabilityId = dataSet.Tables[0].Rows[i].ItemArray[18] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[18]) : string.Empty,
+								AverageWorkingDay = dataSet.Tables[0].Rows[i].ItemArray[19] != null ? int.Parse(dataSet.Tables[0].Rows[i].ItemArray[19].ToString()) : 0,
+								WorkingHour = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[20]?.ToString(), out decimal workingHourResult) ? workingHourResult : 0.0m,
+								AverageEmployeeFullCost = dataSet.Tables[0].Rows[i].ItemArray[21] != null ? int.Parse(dataSet.Tables[0].Rows[i].ItemArray[21].ToString()) : 0,
+								EmployeeCount = dataSet.Tables[0].Rows[i].ItemArray[22] != null ? int.Parse(dataSet.Tables[0].Rows[i].ItemArray[22].ToString()) : 0,
+								TaskFrequencyId = dataSet.Tables[0].Rows[i].ItemArray[23] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[23]) : string.Empty,
+								ActivityVolumeAverage = dataSet.Tables[0].Rows[i].ItemArray[24] != null ? int.Parse(dataSet.Tables[0].Rows[i].ItemArray[24].ToString()) : 0,
+								AverageProcessingTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[25]?.ToString(), out decimal averageProcessingTimeResult) ? averageProcessingTimeResult : 0.0m,
+								AverageErrorRate = dataSet.Tables[0].Rows[i].ItemArray[26] != null ? int.Parse(dataSet.Tables[0].Rows[i].ItemArray[26].ToString()) : 0,
+								AverageReworkTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[27]?.ToString(), out decimal averageReworkTimeResult) ? averageReworkTimeResult : 0.0m,
+								AverageWorkToBeReviewed = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[28]?.ToString(), out decimal averageWorkToBeReviewedResult) ? averageWorkToBeReviewedResult : 0.0m,
+								AverageReviewTimeComment = dataSet.Tables[0].Rows[i].ItemArray[29] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[29]) : string.Empty,
+								ProcessPeakId = dataSet.Tables[0].Rows[i].ItemArray[30] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[30]) : string.Empty,
+								AverageNumberOfStepId = dataSet.Tables[0].Rows[i].ItemArray[31] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[31]) : string.Empty,
+								NumberOfWaysToCompleteProcessId = dataSet.Tables[0].Rows[i].ItemArray[32] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[32]) : string.Empty,
+								DataInputPercentOfStructuredId = dataSet.Tables[0].Rows[i].ItemArray[33] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[33]) : string.Empty,
+								DecisionCountId = dataSet.Tables[0].Rows[i].ItemArray[34] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[34]) : string.Empty,
+								DecisionDifficultyId = dataSet.Tables[0].Rows[i].ItemArray[35] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[35]) : string.Empty,
+								PotentialFineAmount = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[36]?.ToString(), out decimal potentialFineAmountResult) ? potentialFineAmountResult : 0.0m,
+								PotentialFineProbability = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[37]?.ToString(), out decimal potentialFineProbabilityResult) ? potentialFineProbabilityResult : 0.0m,
+								IsHighRisk = dataSet.Tables[0].Rows[i].ItemArray[38] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[38]) : string.Empty,
+								IsDataSensitive = dataSet.Tables[0].Rows[i].ItemArray[39] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[39]) : string.Empty,
+								IsAlternative = dataSet.Tables[0].Rows[i].ItemArray[40] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[40]) : string.Empty,
+								IsHostUpgrade = dataSet.Tables[0].Rows[i].ItemArray[41] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[41]) : string.Empty,
+								IsDataInputScanned = dataSet.Tables[0].Rows[i].ItemArray[42] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[42]) : string.Empty,
+							};
+
+							rows.Add(fileReader);
+						}
+						return (true, "Upload successful.", rows);
+
 					}
+
+
+					else
+
+					{
+						return (false, "Incorrect format detected. Please download our template, add your ideas, and try again.", new List<COEBulkIdeaModel>());
+					}
+
+
+
 				}
-				return rows;
 			}
 			catch (Exception ex)
 			{

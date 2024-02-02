@@ -63,6 +63,8 @@ $("#DownloadTemplate").on("click", function () {
 });
 
 function btnTFilesUpload() {
+    $("#InvalidFileTemplate").css("display", "none");
+
     var fileInput = document.getElementById('fileElem');
 
     if (fileInput.files.length === 0) {
@@ -86,6 +88,7 @@ function btnTFilesUpload() {
                 $("#UploadPipelineModal").modal("hide");
                 $("#EmptyFileText").css("display", "none");
                 $("#duplicateIdeasText").css("display", "none");
+                $("#InvalidFileTemplate").css("display", "none");
 
                 $('#Coedata').empty();
                 var x = 1;
@@ -110,7 +113,8 @@ function btnTFilesUpload() {
                 $("#ShowUploadPipelineMessageModal").modal("show");
 
             } else {
-                console.error(response.message);
+                $("#InvalidFileTemplate").css("display", "block");
+                return;
             }
         },
         error: function (error) {

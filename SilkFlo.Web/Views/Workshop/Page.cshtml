@@ -80,6 +80,7 @@
 		}
 	</div>
 
+
 	<div class="modal fade"
 		 id="UploadPipelineModal"
 		 tabindex="-1"
@@ -87,6 +88,8 @@
 		 aria-hidden="true">
 		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 646px">
 			<form class="row" style="margin-top:0 !important">
+				@* 			<h3 style="color:#FF8A00;">Step 1 Of 4</h3>
+				*@
 				<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
 
 				<br />
@@ -98,6 +101,7 @@
 
 				<span style=" padding-left: 120px; color:#8E9CA7 ; font-family: 'Poppins', sans-serif; font-size: 16px; margin-top:10px">First, <span style="color: #2F80ED;  cursor: pointer; " id="DownloadTemplate">Download</span> our template Excel file.</span>
 
+
 				<div class="col-12" style="margin-top: 25px;">
 					<div id="dropZone" style=" background-color: white; border-color:#ff8a00; margin-inline: auto; margin-top: 0; flex: 0.5; height: 209px; width: 802px;" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
 
@@ -106,27 +110,40 @@
 
 						<span style="font-family: 'Poppins', sans-serif; font-size: 16px; color: #8E9CA7; background-color: white; border-radius: 5px; cursor: pointer; display: inline-block;">Browse your device to add Excel files<input type="file" style="display: none;"></span>
 						<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
-							<input id="fileElem" type="file" style="display: none;" onchange="onFileElemChange2()" multiple="multiple" />
+							<input id="fileElem" type="file" style="display: none;" onchange="onFileElemChange()" multiple="multiple" />
 							<label style="width: 108px; height: 48px; text-align: center; color: #FFFFFF; font-size: 16px; background-color: #ff8a00; padding: 10px; cursor: pointer; border-radius: 6px" for="fileElem">Browse</label>
 						</div>
 
 						<span id="fileLabel" style="font-family: 'Poppins', sans-serif; font-size: 16px; color: #8E9CA7; padding-top: 7px;">No file selected</span>
+						<span id="InvalidFileTemplate" style="color: red; display: none; display:none;">Incorrect format detected. Please download our template, add your ideas, and try again.</span>
+
+
 					</div>
 					<br />
 
 					<span style="padding-left: 320px; font-family: 'Poppins', sans-serif; font-size: 19px; font-weight: bold; color: black; display: inline-block;">Need help getting started?</span>
-					<br />					
-					<span style="padding-left: 290px; color:#8E9CA7 ; font-family: 'Poppins', sans-serif; font-size: 16px;"><a href="https://silkflo.com/docs/import-ideas-to-SilkFlo-from-Excel" target="_blank"><span style="color: #2F80ED; ">Read and learn</span></a> about uploading to SilkFlo</span>
+					<br />
+					<span style="padding-left: 290px; color:#8E9CA7 ; font-family: 'Poppins', sans-serif; font-size: 16px;"><span style="color: #2F80ED; ">Read and learn</span> about uploading to SilkFlo</span>
 
 				</div>
 
 				<div class="col-12" style="margin-top: 5px; justify-content: flex-end; display: flex;">
 
 
+					@* 	<button type="button"
+					id="btnCloseFileModal"
+					onclick=""
+					class="btn btn-primary"
+					style="background: #ffffff; border: 2px solid #ff8a00; border-radius: 8px; margin-right: 450px; color: #ff8a00;">
+					Back
+					</button> *@
+
+
 					<button type="button"
-							onclick="btnTFilesUpload()"
+							id="btnTFilesUpload"
+							onclick=""
 							class="btn btn-primary"
-							style="background: #ff8a00; border: 0; width:82px; height:48px; border-radius: 6px; font-size: 19px;margin-right: 45px;">
+							style="background: #ff8a00; border: 0; width:82px; height:48px; border-radius: 6px;font-size: 19px;margin-right: 45px;">
 						Next
 					</button>
 				</div>
@@ -139,6 +156,7 @@
 
 
 	</div>
+
 
 	<div class="modal fade"
 		 id="ShowUploadPipelineMessageModal"
@@ -191,16 +209,17 @@
 
 				<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
 				<span style="padding-left: 815px; font-family: 'Poppins', sans-serif; font-size: 14px; color: black; text-decoration: underline; margin-top:10px">Step 3 of 4</span>
-				<span style="padding-left: 100px; font-weight: bold; font-size: 25px; font-family: 'Manrope', sans-serif;">Let's verify your data</span>
+				<span style="padding-left: 100px; font-weight: bold; font-size: 25px; font-family: 'Manrope', sans-serif;">Let’s verify your data</span>
 				<span style=" padding-left: 100px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 16px; margin-bottom: 10px;">Double check that your data is correct.</span>
 
-				<div style="overflow-x: auto; overflow-y: auto; max-height: 330px; margin-left:-5px;">
+				<div style="overflow-x: auto; overflow-y: auto; max-height: 330px; margin-left: -5px;">
 
 					<table id="Coedatalist" class="table table-striped dataTable table-bordered">
 						<thead style="position: sticky; top: 0; background-color: #ffffff;">
 							<tr>
-								<td><strong></strong></td>
-								<td><strong>Name</strong></td>
+								<th style="position: sticky; left: 0; background-color: #ffffff;"><strong></strong></th>
+								<th style="position: sticky; left: 30px; background-color: #ffffff;"><strong>Name</strong></th>
+
 								<td><strong>CreatedDate</strong></td>
 								<td><strong>SubmitterEmailAddress</strong></td>
 								<td><strong>ProcessOwnerEmailAddress</strong></td>
@@ -243,7 +262,9 @@
 								<td><strong>IsAlternative</strong></td>
 								<td><strong>IsHostUpgrade</strong></td>
 								<td><strong>IsDataInputScanned</strong></td>
-								<td><strong>Action</strong></td>
+								<th style="position: sticky; background-color: #ffffff;"><strong>Action</strong></th>
+
+
 							</tr>
 						</thead>
 						<tbody id="Coedata">
@@ -254,28 +275,85 @@
 				<br />
 				<span id="EmptyFileText" style="color: red; display: none; display:none; margin-left:350px">Your File Is Empty</span>
 
-				<span id="duplicateIdeasText" style="color: red; display: none; display:none; margin-left:20px">Duplicate ideas found.</span>
+				<span id="duplicateIdeasText" style="color: red; display: none; display:none; margin-left:350px">There Are Duplicate ideas</span>
+
+
+
 
 				<div class="col-12" style="margin-top: 30px; justify-content: flex-end; display: flex;">
 
 					<button type="button"
-							id=""
-							onclick="btnShowUploadPipelineMessageModal()"
+							id="btnShowUploadPipelineMessageModal"
+							onclick=""
 							class="btn btn-primary"
 							style="background: #ffffff; border: 2px solid #ff8a00; border-radius: 6px; color: #ff8a00; width:82px; height:48px">
 						Back
 					</button>
 					<button type="button"
-							onclick="saveCOEData()"
+							id="saveCOEData"
+							onclick=""
 							class="btn btn-primary"
 							style="background: #ff8a00; border: 0; border-radius: 6px;margin-left: 650px; width:140px; height:48px">
 						Start Import
 					</button>
 				</div>
+
 			</form>
 
+			<style>
+
+				#Coedatalist th:first-child,
+				#Coedata td:first-child {
+					position: -webkit-sticky;
+					position: sticky;
+					left: 0;
+					background-color: #ffffff;
+					z-index: 2;
+				}
+
+
+
+				#Coedatalist th:nth-child(2),
+				#Coedata td:nth-child(2) {
+					position: -webkit-sticky;
+					position: sticky;
+					left: 30px; /* Adjust the left position as needed */
+					background-color: #ffffff;
+					z-index: 2;
+				}
+
+				/* Add this style to fix the last column */
+				#Coedata td:last-child {
+					position: -webkit-sticky;
+					position: sticky;
+					right: -15px;
+					background-color: #ffffff;
+					z-index: 2;
+				}
+
+				#Coedatalist th:last-child {
+					position: -webkit-sticky;
+					position: sticky;
+					right: -15px;
+					background-color: #ffffff;
+					z-index: 3;
+				}
+
+				#Coedatalist thead {
+					position: -webkit-sticky;
+					position: sticky;
+					top: 0;
+					background-color: #ffffff;
+					z-index: 3;
+				}
+
+			</style>
+
 		</div>
+
+
 	</div>
+
 
 	<div class="modal fade" id="ShowDataProcessingModal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 646px">
