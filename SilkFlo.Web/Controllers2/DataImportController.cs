@@ -316,16 +316,10 @@ namespace SilkFlo.Web.Controllers
 						return (true, "Upload successful.", rows);
 
 					}
-
-
 					else
-
 					{
 						return (false, "Incorrect format detected. Please download our template, add your ideas, and try again.", new List<COEBulkIdeaModel>());
 					}
-
-
-
 				}
 			}
 			catch (Exception ex)

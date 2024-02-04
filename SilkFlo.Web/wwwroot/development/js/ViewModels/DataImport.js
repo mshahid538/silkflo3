@@ -1,4 +1,17 @@
-﻿function showImportModal() {
+﻿window.onload = function () {
+    $('#tstProgress').toast('show');
+    $('#tstSuccess').toast('show');
+
+    //$('#tstProgress').toast('hide');
+    //$('#tstSuccess').toast('hide');
+
+    //var toastElement = document.querySelector('.toast');
+    //if (toastElement) {
+    //    toastElement.classList.add('show');
+    //}
+}
+
+function showImportModal() {
     $("#UploadPipelineModal").modal("show");
 };
 
