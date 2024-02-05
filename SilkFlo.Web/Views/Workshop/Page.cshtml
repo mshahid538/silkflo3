@@ -1,46 +1,40 @@
 @model SilkFlo.Web.ViewModels.Workshop.Page
 
 <style>
+	#tableContainer {
+		max-height: 500px;
+		overflow: auto;
+		position: relative;
+	}
+
 	#Coedatalist td:first-child,
-	#Coedata td:first-child {
+	#Coedata td:first-child,
+	#Coedatalist td:nth-child(2),
+	#Coedata td:nth-child(2),
+	#Coedata td:last-child,
+	#Coedatalist th:last-child,
+	#Coedatalist thead tr th,
+	#Coedatalist thead
+	{
 		position: -webkit-sticky;
 		position: sticky;
-		left: -15px;
-	/* 	background-color: #ffffff; */
+		background-color: #ffffff;
 		z-index: 2;
+	}
+
+	#Coedatalist td:first-child,
+	#Coedata td:first-child {
+		left: -15px;
 	}
 
 	#Coedatalist td:nth-child(2),
 	#Coedata td:nth-child(2) {
-		position: -webkit-sticky;
-		position: sticky;
-		left: 15px;
-	/* 	background-color: #ffffff; */
-		z-index: 2;
+		left: 10px;
 	}
 
-	#Coedata td:last-child {
-		position: -webkit-sticky;
-		position: sticky;
-		right: -15px;
-	/* 	background-color: #ffffff; */
-		z-index: 2;
-	}
-
+	#Coedata td:last-child,
 	#Coedatalist th:last-child {
-		position: -webkit-sticky;
-		position: sticky;
 		right: -15px;
-		/* background-color: #ffffff; */
-		z-index: 3;
-	}
-
-	#Coedatalist thead {
-		position: -webkit-sticky;
-		position: sticky;
-		top: 0;
-/* 		background-color: #ffffff; */
-		z-index: 3;
 	}
 
 	#loader {
@@ -54,22 +48,9 @@
 		top: 50%;
 		left: 50%;
 	}
-
-	#spin {
-		0%
-
-	{
-		transform: rotate(0deg);
-	}
-
-	100% {
-		transform: rotate(360deg);
-	}
 </style>
 
-<div class="container silkflo_tile_container"
-	 id="workshopContainer">
-
+<div class="container silkflo_tile_container" id="workshopContainer">
 	@*Titles*@
 	<div class="TitleBar">
 		<h1>Workshop</h1>
@@ -77,7 +58,7 @@
 
 		<div class="d-flex justify-content-end">
 			<div style="display: inline-block; margin-bottom: 1rem; margin-right: 10px;">
-				<button type="button" class="btn btn-warning" onclick="showImportModal()">  
+				<button type="button" class="btn btn-warning" onclick="showImportModal()">
 					<img src="~/Icons/fileuploadicons/excel.png" style="height: 20px" />
 					<span> Import</span>
 				</button>
@@ -227,7 +208,7 @@
 	</div>
 
 	<div class="modal fade" id="ShowDataPipelineModal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
-		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 646px">
+		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 760px">
 			<form class="row" style="margin-top:0 !important">
 
 				<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
@@ -235,13 +216,12 @@
 				<span style="padding-left: 100px; font-weight: bold; font-size: 25px; font-family: 'Manrope', sans-serif;">Let's verify your data</span>
 				<span style=" padding-left: 100px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 16px; margin-bottom: 10px;">Double check that your data is correct.</span>
 
-				<div style="overflow-x: auto; overflow-y: auto; max-height: 330px; margin-left:-5px;">
-
+				<div id="tableContainer">
 					<table id="Coedatalist" class="table table-striped dataTable table-bordered">
 						<thead style="position: sticky; top: 0; background-color: #ffffff;">
 							<tr>
 								<td style="position: sticky; left: 0; background-color: #ffffff;"><strong></strong></td>
-								<td style="position: sticky; left: 30px; background-color: #ffffff;"><strong>Name</strong></td>
+								<td style="position: sticky; left: 10px; background-color: #ffffff;"><strong>Name</strong></td>
 								<td><strong>CreatedDate</strong></td>
 								<td><strong>SubmitterEmailAddress</strong></td>
 								<td><strong>ProcessOwnerEmailAddress</strong></td>
@@ -291,11 +271,12 @@
 						</tbody>
 					</table>
 
+					<br />
+					
 				</div>
-				<br />
 				<span id="EmptyFileText" style="color: red; display: none; display:none; margin-left:350px">Your File Is Empty</span>
 
-				<span id="duplicateIdeasText" style="color: red; display: none; display:none; margin-left:20px">Duplicate ideas found.</span>
+				<span id="duplicateIdeasText" style="color: red; display: none; display:none; margin-left:20px">The Excel file contains duplicate ideas. Please modify or remove these duplicates before proceeding.</span>
 
 				<div class="col-12" style="margin-top: 30px; justify-content: flex-end; display: flex;">
 
@@ -339,21 +320,20 @@
 			<br />
 			<div style="width: 50%; height: 6px;  background: linear-gradient(to right,  #2F80ED 50%, #D9DBE9 50%); margin: 20px auto;"></div>
 			<span style="padding-left: 150px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 18px;">This may take some time, feel free to close this window to continue working.</span>
-			
+
 			<div>
 				<button type="button"
 						id="ContinueWorking"
 						onclick="continueWorking()"
 						class="btn btn-primary"
-
-					style="background: #ffffff; border: 2px solid #ff8a00; border-radius: 8px; margin-left: 640px; margin-top: 150px;  color: #ff8a00;">
+						style="background: #ffffff; border: 2px solid #ff8a00; border-radius: 8px; margin-left: 640px; margin-top: 150px;  color: #ff8a00;">
 					Continue Working
 				</button>
 				<div style="margin-left: 400px; margin-top:230px;" id="loader">
 				</div>
-			
+
 			</div>
-		
+
 
 		</div>
 	</div>
@@ -422,7 +402,7 @@
 			</div>
 		</div>
 	</div>
-		
+
 </body>
 
 

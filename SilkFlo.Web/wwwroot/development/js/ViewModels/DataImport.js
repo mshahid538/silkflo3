@@ -116,7 +116,7 @@ function btnTFilesUpload() {
                         }
                     }
 
-                    newRow += '<td><button class="btn btn-danger btnDeleteRow" style="background: transparent; border: none; color: red;"><i class="fas fa-trash-alt"></i></button></td>';
+                    newRow += '<td><button title="delete" class="btn btn-danger btnDeleteRow" style="background: transparent; border: none; color: red;"><i class="fas fa-trash-alt"></i></button></td>';
 
 
                     newRow += '</tr>';
@@ -161,7 +161,7 @@ function saveCOEData() {
 
         var name = rowData['Name'];
         if (tableData.some(item => item['Name'] === name)) {
-            $row.css('background-color', 'rgb(255, 228, 225)');
+            $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
             hasDuplicates = true;
         }
 
@@ -249,7 +249,6 @@ function FinishPipelinemodals() {
 
 function onFileElemChange2() {
     $("#InvalidFileTemplate").css("display", "none");
-
     var fileInput = document.getElementById('fileElem');
     var fileLabel = document.getElementById('fileLabel');
 
