@@ -1,8 +1,6 @@
 @model SilkFlo.Web.ViewModels.Workshop.Page
 
 <style>
-
-
 	#Coedatalist td:first-child,
 	#Coedata td:first-child {
 		position: -webkit-sticky;
@@ -20,8 +18,6 @@
 	/* 	background-color: #ffffff; */
 		z-index: 2;
 	}
-
-
 
 	#Coedata td:last-child {
 		position: -webkit-sticky;
@@ -46,7 +42,6 @@
 /* 		background-color: #ffffff; */
 		z-index: 3;
 	}
-
 
 	#loader {
 		border: 16px solid #f3f3f3;
@@ -159,8 +154,6 @@
 
 						<span id="fileLabel" style="font-family: 'Poppins', sans-serif; font-size: 16px; color: #8E9CA7; padding-top: 7px;">No file selected</span>
 						<span id="InvalidFileTemplate" style="color: red; display: none; display:none;">Incorrect format detected. Please download our template, add your ideas, and try again.</span>
-
-
 					</div>
 					<br />
 
@@ -187,7 +180,6 @@
 
 
 	</div>
-
 
 	<div class="modal fade"
 		 id="ShowUploadPipelineMessageModal"
@@ -250,7 +242,6 @@
 							<tr>
 								<td style="position: sticky; left: 0; background-color: #ffffff;"><strong></strong></td>
 								<td style="position: sticky; left: 30px; background-color: #ffffff;"><strong>Name</strong></td>
-
 								<td><strong>CreatedDate</strong></td>
 								<td><strong>SubmitterEmailAddress</strong></td>
 								<td><strong>ProcessOwnerEmailAddress</strong></td>
@@ -294,8 +285,6 @@
 								<td><strong>IsHostUpgrade</strong></td>
 								<td><strong>IsDataInputScanned</strong></td>
 								<th style="position: sticky; background-color: #ffffff;"><strong>Action</strong></th>
-
-
 							</tr>
 						</thead>
 						<tbody id="Coedata">
@@ -307,9 +296,6 @@
 				<span id="EmptyFileText" style="color: red; display: none; display:none; margin-left:350px">Your File Is Empty</span>
 
 				<span id="duplicateIdeasText" style="color: red; display: none; display:none; margin-left:20px">Duplicate ideas found.</span>
-
-
-
 
 				<div class="col-12" style="margin-top: 30px; justify-content: flex-end; display: flex;">
 
@@ -327,14 +313,10 @@
 						Start Import
 					</button>
 				</div>
-
 			</form>
 
 		</div>
-
 	</div>
-
-
 	<div class="modal fade" id="ShowDataProcessingModal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 646px">
 
@@ -404,11 +386,44 @@
 
 
 	</div>
+
 </div>
 
-<script>
+@*data-bs-autohide="false".*@
+<body>
+	<div style="position: fixed; bottom: 0; right:0; margin-bottom:10px; margin-right:10px; z-index: 1050; pointer-events: none;">
+		<div id="tstProgress" class="toast toast-info" data-bs-autohide="false" role="alert" aria-live="assertive" aria-atomic="true">
+			<div class="toast-header">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" style="color: #189EFF; margin-right:10px;" class="bi bi-info-circle" viewBox="0 0 16 16">
+					<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+					<path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+				</svg>
+				<strong class="me-auto" style="color:#52667A">Your ideas are being imported</strong>
+			</div>
+			<div class="toast-body">
+				<div class="progress">
+					<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 50%"></div>
+				</div>
+			</div>
+		</div>
+		<br />
+		<div id="tstSuccess" class="toast toast-success" data-bs-autohide="false" role="alert" aria-live="assertive" aria-atomic="true">
+			<div class="toast-header">
+
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="margin-right:10px;" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+					<path fill="#4ECB71" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+				</svg>
+
+				<strong class="me-auto">Bulk upload successful</strong>
+				<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+			</div>
+			<div class="toast-body">
+				<span><b>44</b></span> <strong>ideas have been added!</strong>
+			</div>
+		</div>
+	</div>
 		
-</script>
+</body>
 
 
 
