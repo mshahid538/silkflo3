@@ -225,12 +225,18 @@ function closeModalAndRefreshPage() {
 
     location.reload();
 }
+function continueWorking() {
+    $("#ShowDataProcessingModal").modal("hide");
+    console.log("ideas being adding");
+}
 
 function FinishPipelinemodals() {
     location.reload();
 }
 
 function onFileElemChange2() {
+    $("#InvalidFileTemplate").css("display", "none");
+
     var fileInput = document.getElementById('fileElem');
     var fileLabel = document.getElementById('fileLabel');
 
