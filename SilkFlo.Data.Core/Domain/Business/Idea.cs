@@ -1641,6 +1641,12 @@ namespace SilkFlo.Data.Core.Domain.Business
     [XmlIgnore]
     public List<Vote> Votes { get; set; } = new List<Vote>();
 
+        [Ignore]
+        public string ImportStatus { get; set; }
+        
+        [Ignore]
+        public string ImportStage { get; set; }
+
     public void Update(Idea idea)
     {
       if (idea.ApplicationStabilityId == null)

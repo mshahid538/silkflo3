@@ -48355,6 +48355,29 @@ namespace SilkFlo.Data.Persistence
             return dataStoreResult1;
         }
 
+
+        public async Task<List<Idea>> ImportBulkIdeas(List<Idea> ideas)
+        {
+            try
+            {
+                ideas.ForEach((x) => 
+                {
+                    x.Id = Guid.NewGuid().ToString();
+                });
+                await UnitOfWork._dataSet.BusinessIdeas.ImportBulk(ideas);
+                return ideas;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public bool CheckIdeasWithExistingName(List<string> names)
+        {
+            return UnitOfWork._dataSet.BusinessIdeas.CheckIdeasWithExistingName(names);
+        }
+
     public void Dispose()
     {
 

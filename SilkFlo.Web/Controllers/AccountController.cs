@@ -786,37 +786,49 @@ public partial class AccountController : AbstractAPI
                     if (state == "silkflo_user")
                     {
                         var user = (await _unitOfWork.Users.FindAsync(x => x.Email == emailClaim.Value || x.EmailNew == emailClaim.Value)).FirstOrDefault();
-                        await _unitOfWork.UserRoles.GetForUserAsync(user);
-                        await _unitOfWork.Roles.GetRoleForAsync(user.UserRoles);
-
-                        if (!user.IsEmailConfirmed)
+                        if (user != null)
                         {
-                            // Redirect to Sign Up Confirmation
-                            throw new Exception("Please confirm your email!");
-                        }
+                            await _unitOfWork.UserRoles.GetForUserAsync(user);
+                            await _unitOfWork.Roles.GetRoleForAsync(user.UserRoles);
 
-                        var returnUrl = await SignInAsync(
-                            user,
-                            new Services.Models.Account.SignIn() { RememberMe = true, StaySignedIn = true },
-                            "",
-                            true,
-                            true);
+                            if (!user.IsEmailConfirmed)
+                            {
+                                // Redirect to Sign Up Confirmation
+                                throw new Exception("Please confirm your email!");
+                            }
 
-                        if (returnUrl == "/account/signin")
-                            return Redirect("/account/signin");
+                            var returnUrl = await SignInAsync(
+                                user,
+                                new Services.Models.Account.SignIn() { RememberMe = true, StaySignedIn = true },
+                                "",
+                                true,
+                                true);
 
-                        if (returnUrl == "/Account/SubscriptionExpired")
-                            return Redirect("/Account/SubscriptionExpired");
+                            if (returnUrl == "/account/signin")
+                                return Redirect("/account/signin");
 
-                        // Exit
-                        if (returnUrl == null
-                        || !Url.IsLocalUrl(returnUrl))
+                            if (returnUrl == "/Account/SubscriptionExpired")
+                                return Redirect("/Account/SubscriptionExpired");
+
+                            // Exit
+                            if (returnUrl == null
+                            || !Url.IsLocalUrl(returnUrl))
+                                return RedirectToAction("Index", "Home");
+
+                            if (Url.IsLocalUrl(returnUrl))
+                                return Redirect(returnUrl);
+
                             return RedirectToAction("Index", "Home");
-
-                        if (Url.IsLocalUrl(returnUrl))
-                            return Redirect(returnUrl);
-
-                        return RedirectToAction("Index", "Home");
+                        }
+                        else
+                        {
+                            return View("/Views/MessagePage.cshtml", new ViewModels.MessagePage
+                            {
+                                Title = "Access Denied",
+                                Message = "<span class=\"silkflo-text-danger\"> Login failed. You do not have access to this resource. Please create an account or use a different login method.<span>",
+                                ShowContinueButton = false
+                            });
+                        }
                     }
                     else
                     {

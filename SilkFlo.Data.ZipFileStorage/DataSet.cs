@@ -230,6 +230,53 @@ namespace SilkFlo.Data.Persistence
             return false; // Value not found in the list
         }
 
+        public async Task<int> ImportBulk(List<T> entities)
+        {
+            int successCount = 0;
+            var tableName = GetTableName(typeof(T));
+
+            if (entities is not null && entities.Count > 0)
+            {
+                try
+                {
+                    using (var db = GetDbConnection())
+                    {
+                        for (int i = 0; i < entities.Count; i++)
+                        {
+                            try
+                            {
+                                await db.InsertAsync(entities);
+                                successCount++;
+                            }
+                            catch (Exception ex)
+                            {
+                                successCount--;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
+            }
+
+            await _dbRepository.RefreshSingletonBulk<T>(tableName);
+
+            return successCount;
+        }
+
+        public bool CheckIdeasWithExistingName(List<string> names)
+        {
+            bool isExist = false;
+            using (var db = GetDbConnection())
+            {
+                isExist = db.Exists<Idea>("WHERE Name IN @0", names);
+            }
+
+            return isExist;
+        }
+
         public T Add(T entity)
         {
             var tableName = GetTableName(typeof(T));
@@ -645,6 +692,37 @@ namespace SilkFlo.Data.Persistence
                 using (var db = GetDbConnection())
                 {
                     cachedData = db.Fetch<T>();
+                }
+
+                _cache.Add(cacheKey, cachedData, DateTimeOffset.Now.AddMinutes(10));
+            }
+
+            return cachedData;
+        }
+
+
+        public async Task<List<T>> RefreshSingletonBulk<T>(string cacheKey)
+        {
+            List<T> cachedData = _cache.Get(cacheKey) as List<T>;
+
+            if (cachedData is not null)
+            {
+                _cache.Remove(cacheKey);
+
+                // Data is not in cache, fetch all data from the database
+                using (var db = GetDbConnection())
+                {
+                    cachedData = await db.FetchAsync<T>();
+                }
+
+                // Store all data in the cache with a specific expiration time (e.g., 10 minutes)
+                _cache.Add(cacheKey, cachedData, DateTimeOffset.Now.AddMinutes(10));
+            }
+            else
+            {
+                using (var db = GetDbConnection())
+                {
+                    cachedData = await db.FetchAsync<T>();
                 }
 
                 _cache.Add(cacheKey, cachedData, DateTimeOffset.Now.AddMinutes(10));

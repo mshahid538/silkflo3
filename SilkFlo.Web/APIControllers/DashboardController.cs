@@ -1123,7 +1123,9 @@ namespace SilkFlo.Web.Controllers
                         continue;
 
                     var ideaStage = idea.LastIdeaStage;
-                    await _unitOfWork.SharedStages.GetStageForAsync(ideaStage.GetCore());
+    
+                    if(ideaStage is not null)
+                       await _unitOfWork.SharedStages.GetStageForAsync(ideaStage.GetCore());
 
                     if (ideaStage.Stage.StageGroupId != Data.Core.Enumerators.StageGroup.n04_Deployed.ToString())
                         continue;

@@ -1,6 +1,6 @@
 ﻿window.onload = function () {
-    $('#tstProgress').toast('show');
-    $('#tstSuccess').toast('show');
+    //$('#tstProgress').toast('show');
+    //$('#tstSuccess').toast('show');
 
     //$('#tstProgress').toast('hide');
     //$('#tstSuccess').toast('hide');
@@ -10,6 +10,36 @@
     //    toastElement.classList.add('show');
     //}
 }
+
+function ContinueWorking() {
+    $('#tstProgress').toast('show');
+}
+
+function getStatus() {
+    var intervalId = setInterval(function () {
+        $.ajax({
+            url: '/Data/Status',
+            type: 'GET',
+            success: function (data) {
+                if (data) {
+                    if (data.isCompleted) {
+                        clearInterval(intervalId);
+                        $('#tstProgress').toast('hide');
+                        $('#tstSuccess').toast('show');
+                        var tstbody = "<span><b>" + data.successCount + "</b></span> <strong>ideas have been added!</strong>" +
+                            "<span><b>" + data.failedCount + "</b></span> <strong>ideas have been failed!</strong>";
+                        $("#tstSuccessBody").html(tstbody);
+                    }
+                    else {
+                        $('#tstProgress').toast('show');
+                        getStatus();
+                    }
+                }
+            }
+        });
+    }, 1000);
+}
+
 
 function showImportModal() {
     $("#UploadPipelineModal").modal("show");

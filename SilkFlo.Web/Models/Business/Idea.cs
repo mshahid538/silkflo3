@@ -3004,6 +3004,9 @@ namespace SilkFlo.Web.Models.Business
         public List<Models.Selector> AllUsers_For_Follows { get; set; } = new List<Models.Selector>();
         public List<Models.Selector> AllUsers_For_Votes { get; set; } = new List<Models.Selector>();
 
+        public string ImportStage { get; set; }
+        public string ImportStatus { get; set; }
+
         public async Task GetCreatedAndUpdated(Data.Core.IUnitOfWork unitOfWork)
         {
             _core.CreatedBy = await unitOfWork.Users.GetAsync(_core.CreatedById);

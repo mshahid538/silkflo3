@@ -1487,5 +1487,8 @@ namespace SilkFlo.Data.Core
       [CallerFilePath] string sourceFile = null,
       [CallerLineNumber] int lineNumber = 0,
       string userId = "");
+
+        Task<List<Idea>> ImportBulkIdeas(List<Idea> ideas);
+        bool CheckIdeasWithExistingName(List<string> names);
   }
 }

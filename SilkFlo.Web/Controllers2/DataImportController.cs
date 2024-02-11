@@ -12,16 +12,19 @@ using SilkFlo.Web.ViewModels;
 using System.Collections.Generic;
 using ExcelDataReader;
 using System.Linq;
+using SilkFlo.Web.ViewModels.Dashboard;
 
 namespace SilkFlo.Web.Controllers
 {
     public class DataImportController : AbstractAPI
     {
         private readonly IConfiguration _configuration;
+		static Dictionary<string, string> ImportStatus;
         public DataImportController(IUnitOfWork unitOfWork, ViewToString viewToString, IAuthorizationService authorization, IConfiguration configuration)
             : base(unitOfWork, viewToString, authorization)
         {
             _configuration = configuration;
+            ImportStatus = new Dictionary<string, string>();
         }
 
 		[HttpPost("/Data/Import")]
@@ -29,23 +32,63 @@ namespace SilkFlo.Web.Controllers
 		{
 			try
 			{
-				List<COEBulkIdeaModel> rows = null;
+                #region ValidationAndPermissionCheck
+                var feedback = new Feedback();
+                var tenant = await GetClientAsync();
+				
+				// Permission Clause
+                if (!(await AuthorizeAsync(Policy.Subscriber)).Succeeded)
+                {
+                    feedback.DangerMessage("You are not authorised save an idea.");
+                    return BadRequest(feedback);
+                }
+
+                // Permission Clause
+                if (!(await AuthorizeAsync(Policy.SubmitCoEDrivenIdeas)).Succeeded)
+                {
+                    feedback.DangerMessage("You do not have permission to save a centre of excellence driven automation idea.");
+                    return BadRequest(feedback);
+                }
+
+                // Permission Clause
+                if (!(await AuthorizeAsync(Policy.ReviewNewIdeas)).Succeeded
+                    && !(await AuthorizeAsync(Policy.ReviewAssessedIdeas)).Succeeded
+                    && !(await AuthorizeAsync(Policy.EditAllIdeaFields)).Succeeded)
+                {
+                    feedback.DangerMessage("You do not have permission to save this idea.");
+                    return BadRequest(feedback);
+                }
+                
+				// Can add process permissions Clause
+                var message = await CanAddProcess(new Models.Business.Client(tenant), "Cannot add additional process ideas.");
+                if (!string.IsNullOrWhiteSpace(message))
+                {
+                    feedback.WarningMessage(message);
+                    return BadRequest(feedback);
+                }
+                #endregion
+
+                List<COEBulkIdeaModel> rows = null;
 				if (File.FileName.ToLower().Contains(".xlsx") || File.FileName.ToLower().Contains(".xls"))
 				{
-					var uploadResult = await UploadCeoExcelFile(File);
+                    //validation
+                    if (File.Length == long.MinValue)
+                    {
+                        feedback.DangerMessage("Invalid or empty File.");
+                        return BadRequest(feedback);
+                    }
 
-
+                    var uploadResult = await UploadCeoExcelFile(File);
 					if (!uploadResult.success)
 					{
 						return Ok(new { status = false, message = uploadResult.message });
 					}
 
 					rows = uploadResult.rows;
-
 				}
 				else
 				{
-					return Ok(new { status = false, message = "Invalid Data!", });
+					return Ok(new { status = false, message = "Invalid File. Please select a valid file format.", });
 				}
 
 				return Ok(new { status = true, message = "Ceo Ideas Added successfully.", data = rows });
@@ -65,176 +108,202 @@ namespace SilkFlo.Web.Controllers
 
 			try
 			{
-				var feedback = new Feedback();
-				var tenant = await GetClientAsync();
-
-				//validation
-				if (tableData is null)
-				{
-					feedback.DangerMessage("Some error occurred during Import.");
-					return BadRequest(feedback);
-				}
-
-				//Move all the permission clauses here
-				// Permission Clause
-				if (!(await AuthorizeAsync(Policy.Subscriber)).Succeeded)
-				{
-					feedback.DangerMessage("You are not authorised save an idea.");
-					return BadRequest(feedback);
-				}
-
-				// Permission Clause
-				if (!(await AuthorizeAsync(Policy.SubmitCoEDrivenIdeas)).Succeeded)
-				{
-					feedback.DangerMessage("You do not have permission to save a centre of excellence driven automation idea.");
-					return BadRequest(feedback);
-				}
-
-				// Permission Clause
-				if (!(await AuthorizeAsync(Policy.ReviewNewIdeas)).Succeeded
-					&& !(await AuthorizeAsync(Policy.ReviewAssessedIdeas)).Succeeded
-					&& !(await AuthorizeAsync(Policy.EditAllIdeaFields)).Succeeded)
-				{
-					feedback.DangerMessage("You do not have permission to save this idea.");
-					return BadRequest(feedback);
-				}
-				// Can add process permissions Clause
-				var message = await CanAddProcess(new Models.Business.Client(tenant), "Cannot add additional process ideas.");
-
-				if (!string.IsNullOrWhiteSpace(message))
-				{
-					feedback.WarningMessage(message);
-					return BadRequest(feedback);
-				}
-
 				var rows = tableData.ToObject<List<COEBulkIdeaModel>>();
-				List<Models.Business.Idea> idealist = new List<Models.Business.Idea>();
 				rowcount = rows.Count;
 
-				foreach (var row in rows)
-				{
-					var idea = new Models.Business.Idea();
-
-					idea.Name = row.Name;
-					idea.CreatedDate = DateTime.Now;
-					idea.CreatedById = (await _unitOfWork.Users.GetUsingEmailAsync(row.SubmitterEmailAddress?.Trim()))?.Id;
-
-					idea.ProcessOwnerId = string.IsNullOrWhiteSpace(row.ProcessOwnerEmailAddress?.Trim())
-						? null
-						: (await _unitOfWork.Users.GetUsingEmailAsync(row.ProcessOwnerEmailAddress.Trim()))?.Id;
-
-					if (idea.ProcessOwnerId == null)
-					{
-						idea.ProcessOwnerId = idea.CreatedById;
-					}
-
-					idea.Summary = row.Description;
-					idea.DepartmentId = (await _unitOfWork.BusinessDepartments.SingleOrDefaultAsync(x => x.ClientId == tenant.Id && x.Name == row.DepartmentId?.Trim())).Id;
-					idea.TeamId = (await _unitOfWork.BusinessTeams.SingleOrDefaultAsync(x => x.ClientId == tenant.Id && x.Name == row.TeamId?.Trim())).Id;
-					idea.ProcessId = (await _unitOfWork.BusinessProcesses.SingleOrDefaultAsync(x => x.ClientId == tenant.Id && x.Name == row.ProcessId?.Trim())).Id;
-
-					//idea.DeployeementDate = row.DeployeementDate;   pending
-					idea.RuleId = (await _unitOfWork.SharedRules.GetByNameAsync(row.RuleId))?.Id;
-					idea.InputId = (await _unitOfWork.SharedInputs.GetByNameAsync(row.InputId))?.Id;
-					idea.InputDataStructureId = (await _unitOfWork.SharedInputDataStructures.GetByNameAsync(row.InputDataStructureId))?.Id;
-					idea.ProcessStabilityId = (await _unitOfWork.SharedProcessStabilities.GetByNameAsync(row.ProcessStabilityId))?.Id;
-					idea.DocumentationPresentId = (await _unitOfWork.SharedDocumentationPresents.GetByNameAsync(row.DocumentationPresentId))?.Id;
-					idea.AutomationGoalId = (await _unitOfWork.SharedAutomationGoals.GetByNameAsync(row.AutomationGoalId))?.Id; ///// spelling mistake
-					idea.ApplicationStabilityId = (await _unitOfWork.SharedApplicationStabilities.GetByNameAsync(row.ApplicationStabilityId))?.Id;
-					idea.TaskFrequencyId = (await _unitOfWork.SharedTaskFrequencies.GetByNameAsync(row.TaskFrequencyId))?.Id;
-					idea.AverageReviewTimeComment = row.AverageReviewTimeComment;
-					idea.ProcessPeakId = (await _unitOfWork.SharedProcessPeaks.GetByNameAsync(row.ProcessPeakId))?.Id;
-					idea.AverageNumberOfStepId = (await _unitOfWork.SharedAverageNumberOfSteps.GetByNameAsync(row.AverageNumberOfStepId))?.Id;
-					idea.NumberOfWaysToCompleteProcessId = (await _unitOfWork.SharedNumberOfWaysToCompleteProcesses.GetByNameAsync(row.NumberOfWaysToCompleteProcessId))?.Id;
-					idea.DataInputPercentOfStructuredId = (await _unitOfWork.SharedDataInputPercentOfStructureds.GetByNameAsync(row.DataInputPercentOfStructuredId))?.Id;
-					idea.DecisionCountId = (await _unitOfWork.SharedDecisionCounts.GetByNameAsync(row.DecisionCountId))?.Id;
-					idea.DecisionDifficultyId = (await _unitOfWork.SharedDecisionDifficulties.GetByNameAsync(row.DecisionDifficultyId))?.Id;
-					idea.AverageWorkingDay = row.AverageWorkingDay;
-					idea.AverageEmployeeFullCost = row.AverageEmployeeFullCost;
-					idea.ActivityVolumeAverage = row.ActivityVolumeAverage;
-					idea.EmployeeCount = row.EmployeeCount;
-					idea.AverageErrorRate = row.AverageErrorRate;
-					idea.WorkingHour = row.WorkingHour;
-					idea.AverageProcessingTime = row.AverageProcessingTime;
-					idea.AverageReworkTime = row.AverageReworkTime;
-					idea.AverageWorkToBeReviewed = row.AverageWorkToBeReviewed;
-					idea.PotentialFineAmount = row.PotentialFineAmount;
-					idea.PotentialFineProbability = row.PotentialFineProbability;
-					idea.IsHighRisk = (row.IsHighRisk?.ToLower()) == "yes";
-					idea.IsDataSensitive = (row.IsDataSensitive?.ToLower()) == "yes";
-					idea.IsAlternative = (row.IsAlternative?.ToLower()) == "yes";
-					idea.IsHostUpgrade = (row.IsHostUpgrade?.ToLower()) == "yes";
-					idea.IsDataInputScanned = (row.IsDataInputScanned?.ToLower()) == "yes";
-					idea.SubmissionPathId = "COEUser";
-
-					//TODO: discuss CreatedById
-					if (string.IsNullOrEmpty(idea.Name) ||
-						string.IsNullOrEmpty(idea.Summary) ||
-						string.IsNullOrEmpty(idea.DepartmentId) ||
-						string.IsNullOrEmpty(idea.RuleId) ||
-						string.IsNullOrEmpty(idea.InputId) ||
-						string.IsNullOrEmpty(idea.InputDataStructureId) ||
-						string.IsNullOrEmpty(idea.ProcessStabilityId) ||
-						string.IsNullOrEmpty(idea.DocumentationPresentId) ||
-						string.IsNullOrEmpty(idea.ApplicationStabilityId)
-						)
-					{
-						idea.IsDraft = true;
-					}
-
-					idealist.Add(idea);
-				}
-
-				//Write BulkUpload Functionality for DB
-
-				foreach (var model in idealist)
-				{
-					model.ClientId = tenant.Id;
-					// Validate
-					if (string.IsNullOrWhiteSpace(model.Name))
-						feedback.Add("Name", "The name of your idea is missing");
-					else if (model.Name.Length > 100)
-						feedback.Add("Name", "Name must be between 1 and 100 in length");
-
-
-					if (string.IsNullOrWhiteSpace(model.Summary))
-						feedback.Add("Summary", "Summary is missing");
-					else if (model.Summary.Length > 750)
-						feedback.Add("Summary", "Name must be between 1 and 750 in length");
-
-					//TODO: Save Idea as a draft if any of the required field is not given in the file
-
-					// Is NOT valid?
-					if (!feedback.IsValid)
-					{
-						failedideacount++;
-						continue;
-					}
-					
-					var core = model.GetCore();
-
-					if (!core.IsDraft)
-					{
-						await _unitOfWork.AddAsync(core);
-						await _unitOfWork.CompleteAsync();
-					}
-					else
-					{
-						await _unitOfWork.AddAsync(core);
-						await _unitOfWork.CompleteAsync();
-					}
-				}
-
-				return Ok(new { status = true, message = "Ceo Ideas Added successfully.", SuccessCount = rowcount - failedideacount, FailedCount = failedideacount });
+				var ideas = Task.Run(() => SaveIdeas(rows));
+				
+				return Ok(new { status = true, message = "Import process started.", SuccessCount = rowcount - failedideacount, FailedCount = failedideacount });
 			}
 			catch (Exception ex)
 			{
-				return Ok(new { status = false, message = "Some error occurred during Import.", SuccessCount = rowcount - failedideacount, FailedCount = failedideacount });
+				return Ok(new { status = false, message = "Some error occurred during Import." });
+			}
+		}
+		
+		[HttpGet("/Data/Status")]
+		public async Task<IActionResult> GetImportStatus()
+		{
+            var tenant = await GetClientAsync();
+            return Ok(new 
+			{
+				IsCompleted = ImportStatus.GetValueOrDefault($"{tenant}-Completed"),
+				SuccessCount = ImportStatus.GetValueOrDefault($"{tenant}-SuccessCount"),
+				FailedCount = ImportStatus.GetValueOrDefault($"{tenant}FailedCount"),
+            });
+        }
+
+		public async Task SaveIdeas(List<COEBulkIdeaModel> rows)
+		{
+			try
+			{
+                var tenant = await GetClientAsync();
+
+				ImportStatus.Add($"{tenant}Completed", "0");
+				ImportStatus.Add($"{tenant}SuccessCount", "0");
+				ImportStatus.Add($"{tenant}FailedCount", "0");
+
+                List<Models.Business.Idea> idealist = new List<Models.Business.Idea>();
+
+                foreach (var row in rows)
+                {
+                    var idea = new Models.Business.Idea();
+
+                    idea.Name = row.Name;
+                    idea.CreatedDate = DateTime.Now;
+                    idea.CreatedById = (await _unitOfWork.Users.GetUsingEmailAsync(row.SubmitterEmailAddress?.Trim()))?.Id;
+
+                    idea.ProcessOwnerId = string.IsNullOrWhiteSpace(row.ProcessOwnerEmailAddress?.Trim())
+                        ? null
+                        : (await _unitOfWork.Users.GetUsingEmailAsync(row.ProcessOwnerEmailAddress.Trim()))?.Id;
+
+                    if (idea.ProcessOwnerId == null)
+                    {
+                        idea.ProcessOwnerId = idea.CreatedById;
+                    }
+
+                    idea.Summary = row.Description;
+                    idea.DepartmentId = (await _unitOfWork.BusinessDepartments.SingleOrDefaultAsync(x => x.ClientId == tenant.Id && x.Name == row.DepartmentId?.Trim())).Id;
+                    idea.TeamId = (await _unitOfWork.BusinessTeams.SingleOrDefaultAsync(x => x.ClientId == tenant.Id && x.Name == row.TeamId?.Trim())).Id;
+                    idea.ProcessId = (await _unitOfWork.BusinessProcesses.SingleOrDefaultAsync(x => x.ClientId == tenant.Id && x.Name == row.ProcessId?.Trim())).Id;
+
+                    //idea.DeployeementDate = row.DeployeementDate;   pending
+                    idea.RuleId = (await _unitOfWork.SharedRules.GetByNameAsync(row.RuleId))?.Id;
+                    idea.InputId = (await _unitOfWork.SharedInputs.GetByNameAsync(row.InputId))?.Id;
+                    idea.InputDataStructureId = (await _unitOfWork.SharedInputDataStructures.GetByNameAsync(row.InputDataStructureId))?.Id;
+                    idea.ProcessStabilityId = (await _unitOfWork.SharedProcessStabilities.GetByNameAsync(row.ProcessStabilityId))?.Id;
+                    idea.DocumentationPresentId = (await _unitOfWork.SharedDocumentationPresents.GetByNameAsync(row.DocumentationPresentId))?.Id;
+                    idea.AutomationGoalId = (await _unitOfWork.SharedAutomationGoals.GetByNameAsync(row.AutomationGoalId))?.Id; ///// spelling mistake
+                    idea.ApplicationStabilityId = (await _unitOfWork.SharedApplicationStabilities.GetByNameAsync(row.ApplicationStabilityId))?.Id;
+                    idea.TaskFrequencyId = (await _unitOfWork.SharedTaskFrequencies.GetByNameAsync(row.TaskFrequencyId))?.Id;
+                    idea.AverageReviewTimeComment = row.AverageReviewTimeComment;
+                    idea.ProcessPeakId = (await _unitOfWork.SharedProcessPeaks.GetByNameAsync(row.ProcessPeakId))?.Id;
+                    idea.AverageNumberOfStepId = (await _unitOfWork.SharedAverageNumberOfSteps.GetByNameAsync(row.AverageNumberOfStepId))?.Id;
+                    idea.NumberOfWaysToCompleteProcessId = (await _unitOfWork.SharedNumberOfWaysToCompleteProcesses.GetByNameAsync(row.NumberOfWaysToCompleteProcessId))?.Id;
+                    idea.DataInputPercentOfStructuredId = (await _unitOfWork.SharedDataInputPercentOfStructureds.GetByNameAsync(row.DataInputPercentOfStructuredId))?.Id;
+                    idea.DecisionCountId = (await _unitOfWork.SharedDecisionCounts.GetByNameAsync(row.DecisionCountId))?.Id;
+                    idea.DecisionDifficultyId = (await _unitOfWork.SharedDecisionDifficulties.GetByNameAsync(row.DecisionDifficultyId))?.Id;
+                    idea.AverageWorkingDay = row.AverageWorkingDay;
+                    idea.AverageEmployeeFullCost = row.AverageEmployeeFullCost;
+                    idea.ActivityVolumeAverage = row.ActivityVolumeAverage;
+                    idea.EmployeeCount = row.EmployeeCount;
+                    idea.AverageErrorRate = row.AverageErrorRate;
+                    idea.WorkingHour = row.WorkingHour;
+                    idea.AverageProcessingTime = row.AverageProcessingTime;
+                    idea.AverageReworkTime = row.AverageReworkTime;
+                    idea.AverageWorkToBeReviewed = row.AverageWorkToBeReviewed;
+                    idea.PotentialFineAmount = row.PotentialFineAmount;
+                    idea.PotentialFineProbability = row.PotentialFineProbability;
+                    idea.IsHighRisk = (row.IsHighRisk?.ToLower()) == "yes";
+                    idea.IsDataSensitive = (row.IsDataSensitive?.ToLower()) == "yes";
+                    idea.IsAlternative = (row.IsAlternative?.ToLower()) == "yes";
+                    idea.IsHostUpgrade = (row.IsHostUpgrade?.ToLower()) == "yes";
+                    idea.IsDataInputScanned = (row.IsDataInputScanned?.ToLower()) == "yes";
+                    idea.SubmissionPathId = "COEUser";
+					idea.ImportStage = row.Stage?.Trim() ?? "";
+					idea.ImportStatus = row.Status?.Trim() ?? "";
+
+                    //TODO: discuss CreatedById
+                    if (string.IsNullOrEmpty(idea.Name) ||
+                        string.IsNullOrEmpty(idea.Summary) ||
+                        string.IsNullOrEmpty(idea.DepartmentId) ||
+                        string.IsNullOrEmpty(idea.RuleId) ||
+                        string.IsNullOrEmpty(idea.InputId) ||
+                        string.IsNullOrEmpty(idea.InputDataStructureId) ||
+                        string.IsNullOrEmpty(idea.ProcessStabilityId) ||
+                        string.IsNullOrEmpty(idea.DocumentationPresentId) ||
+                        string.IsNullOrEmpty(idea.ApplicationStabilityId)
+                        )
+                    {
+                        idea.IsDraft = true;
+                    }
+
+                    idealist.Add(idea);
+                }
+
+				List<Data.Core.Domain.Business.Idea> cores = new List<Data.Core.Domain.Business.Idea>(); //.Select(x => x.GetCore()).ToList();
+                idealist.ForEach((v) => 
+				{ 
+					var idea = v.GetCore();
+					idea.ClientId = tenant.Id;
+					idea.ImportStage = v.ImportStage;
+					idea.ImportStatus = v.ImportStatus;
+					cores.Add(idea);
+
+                });
+                var ideas = await _unitOfWork.ImportBulkIdeas(cores);
+                await _unitOfWork.CompleteAsync();
+
+				var successCount = rows.Count.Equals(ideas.Count) ? rows.Count : 0;
+				var failedCount = rows.Count - ideas.Count;
+
+                ImportStatus.Add($"{tenant}SuccessCount", $"{successCount}");
+                ImportStatus.Add($"{tenant}FailedCount", $"{failedCount}");
+
+                await SaveIdeasWorkflows(ideas);
+                ImportStatus.Add($"{tenant}Completed", "1");
+            }
+            catch (Exception ex)
+			{
+				throw;
+			}
+		}
+
+		public async Task SaveIdeasWorkflows(List<Data.Core.Domain.Business.Idea> ideas)
+		{
+			List<Data.Core.Domain.Business.IdeaStage> ideaStages = new List<Data.Core.Domain.Business.IdeaStage>();
+			List<Data.Core.Domain.Business.IdeaStageStatus> ideaStageStasues = new List<Data.Core.Domain.Business.IdeaStageStatus>();
+
+			foreach (var idea in ideas)
+			{
+				var firstStage = Data.Core.Enumerators.Stage.n01_Assess;
+
+				var date = DateTime.Now;
+				var ideaStage = new Data.Core.Domain.Business.IdeaStage
+				{
+					Idea = idea,
+					StageId = firstStage.ToString(),
+					DateStartEstimate = date,
+					DateStart = date,
+					IsInWorkFlow = false,
+				};
+
+				await _unitOfWork.AddAsync(ideaStage);
+				await _unitOfWork.CompleteAsync();
+
+
+				var ideaStageStatus = new Data.Core.Domain.Business.IdeaStageStatus
+				{
+					IdeaStageId = ideaStage.Id,
+					StatusId = Data.Core.Enumerators.IdeaStatus.n04_Assess_AwaitingReview.ToString(),
+					Date = date
+				};
+				await _unitOfWork.AddAsync(ideaStageStatus);
+				await _unitOfWork.CompleteAsync();
+
+				var stages = (await _unitOfWork.SharedStages.FindAsync(x => x.Id != firstStage.ToString())).ToArray();
+				if (firstStage == Data.Core.Enumerators.Stage.n01_Assess)
+					stages = stages.Where(x => x.Id != Data.Core.Enumerators.Stage.n00_Idea.ToString()).ToArray();
+
+				var now = DateTime.Now;
+				foreach (var stage in stages)
+				{
+					ideaStage = new Data.Core.Domain.Business.IdeaStage
+					{
+						Idea = idea,
+						DateStartEstimate = now,
+						Stage = stage
+					};
+
+					now = now.AddSeconds(1);
+					await _unitOfWork.AddAsync(ideaStage);
+				}
+				await _unitOfWork.CompleteAsync();
 			}
 		}
 
 
-		public async Task<(bool success, string message,List<COEBulkIdeaModel> rows)> UploadCeoExcelFile(IFormFile file)
+		public async Task<(bool success, string message, List<COEBulkIdeaModel> rows)> UploadCeoExcelFile(IFormFile file)
 		{
 			List<COEBulkIdeaModel> rows = new List<COEBulkIdeaModel>();
 			try
@@ -242,27 +311,25 @@ namespace SilkFlo.Web.Controllers
 				using (var stream = file.OpenReadStream())
 				{
 					IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream);
-				System.Data.DataSet dataSet = reader.AsDataSet(
-					new ExcelDataSetConfiguration()
-					{
-						UseColumnDataType = false,
-						ConfigureDataTable = (tableReader) => new ExcelDataTableConfiguration()
+					System.Data.DataSet dataSet = reader.AsDataSet(
+						new ExcelDataSetConfiguration()
 						{
-							UseHeaderRow = false,
-						}
-					});
+							UseColumnDataType = false,
+							ConfigureDataTable = (tableReader) => new ExcelDataTableConfiguration()
+							{
+								UseHeaderRow = false,
+							}
+						});
 
-				DateTime CreatedDate = DateTime.Now;
-				string formattedDate = CreatedDate.ToString("yyyy-MM-dd");
+					DateTime CreatedDate = DateTime.Now;
+					string formattedDate = CreatedDate.ToString("yyyy-MM-dd");
 
 					if ((dataSet.Tables[0].Rows[1].ItemArray[0].ToString() == "Name of Automation*") &&
-				 (dataSet.Tables[0].Rows[1].ItemArray[1].ToString() == "Date Submitted") &&
-				  (dataSet.Tables[0].Rows[1].ItemArray[2].ToString() == "Submitter's Email Address *") &&
-					(dataSet.Tables[0].Rows[1].ItemArray[5].ToString() == "Description *"))
-
+						 (dataSet.Tables[0].Rows[1].ItemArray[1].ToString() == "Date Submitted") &&
+						  (dataSet.Tables[0].Rows[1].ItemArray[2].ToString() == "Submitter's Email Address *") &&
+							(dataSet.Tables[0].Rows[1].ItemArray[5].ToString() == "Description *"))
 					{
 						for (int i = 3; i < dataSet.Tables[0].Rows.Count; i++)
-
 						{
 							var fileReader = new COEBulkIdeaModel
 							{
@@ -313,7 +380,23 @@ namespace SilkFlo.Web.Controllers
 
 							rows.Add(fileReader);
 						}
-						return (true, "Upload successful.", rows);
+						
+						if (rows.Any(x => String.IsNullOrEmpty(x.Name)))
+                            return (false, "Some Idea(s) contain invalid or empty name.", rows);
+						
+						if (rows.Any(x => x.Name.Length > 100))
+                            return (false, "Some Idea(s) exceeds name limit, it should be 100 characters max.", rows);
+
+                        if (rows.Any(x => String.IsNullOrEmpty(x.Description)))
+                            return (false, "Some Idea(s) contain invalid or empty description.", rows);
+
+                        if (rows.Any(x => x.Description.Length > 100))
+                            return (false, "Some Idea(s) exceeds description limit, it should be 750 characters max.", rows);
+
+						if (_unitOfWork.CheckIdeasWithExistingName(rows.Select(x => x.Name).ToList()))
+							return (false, "Some Idea(s) contains duplicate Name.", rows);
+
+                        return (true, "Upload successful.", rows);
 
 					}
 					else
