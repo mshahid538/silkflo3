@@ -313,3 +313,7 @@ function dragOverHandler(event) {
 function ShowAddTokenModal() {
     $("#ShowAddTokenModal").modal("show");
 };
+
+function HideAddTokenModal() {
+    $("#ShowAddTokenModal").modal("hide");
+};
