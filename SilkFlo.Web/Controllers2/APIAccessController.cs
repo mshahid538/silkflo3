@@ -100,5 +100,31 @@ namespace SilkFlo.Web.Controllers
             }
         }
 
+        [HttpPost("/SaveToken")]
+        public async Task<IActionResult> SaveToken([FromBody] TokenData data)
+        {
+            try
+            {
+                string tokenName = data.tokenName;
+                string tokenDescription = data.tokenDescription;
+                string tokenExpires = data.tokenExpires;
+                bool isActive = data.isActive;
+
+                return Ok(new { status = true, message = "Token Saved." });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { status = false, message = "Some error occurred during SaveToken." });
+            }
+        }
+
+        public class TokenData
+        {
+            public string tokenName { get; set; }
+            public string tokenDescription { get; set; }
+            public string tokenExpires { get; set; }
+            public bool isActive { get; set; }
+        }
+
     }
 }
