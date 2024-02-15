@@ -305,3 +305,11 @@ function dropHandler(event) {
 function dragOverHandler(event) {
     event.preventDefault();
 }
+
+
+
+//////////// API ACCESS  //////////////////////
+
+function ShowAddTokenModal() {
+    $("#ShowAddTokenModal").modal("show");
+};
