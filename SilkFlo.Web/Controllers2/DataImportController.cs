@@ -390,8 +390,8 @@ namespace SilkFlo.Web.Controllers
                         if (rows.Any(x => String.IsNullOrEmpty(x.Description)))
                             return (false, "Some Idea(s) contain invalid or empty description.", rows);
 
-                       if (rows.Any(x => x.Description.Length > 100))
-                           return (false, "Some Idea(s) exceeds description limit, it should be 750 characters max.", rows);
+                        if (rows.Any(x => x.Description.Length > 100))
+                            return (false, "Some Idea(s) exceeds description limit, it should be 750 characters max.", rows);
 
 						if (_unitOfWork.CheckIdeasWithExistingName(rows.Select(x => x.Name).ToList()))
 							return (false, "Some Idea(s) contains duplicate Name.", rows);

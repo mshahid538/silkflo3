@@ -249,22 +249,6 @@
                                     </div>
                                 </a>
                             </li>
-                        <li id="SideBar.Settings.Tenant.UploadPipeline.Container">
-                            <a class="pointer"
-                               data-bs-target="tooltip"
-                               data-placement="right"
-                               id="SideBar.Settings.Tenant.Upload Pipeline"
-                               silkflo-action="SideBar: Settings > Tenant > UploadPipeline"
-                               onclick="SilkFlo.SideBar.OnClick ('/DataImport/' )"
-                               silkflo-parent-menu-id="SideBar.Settings.Container"
-                               title="Show Upload Pipeline">
-                                <div class="pointer">
-                                    <img class="icon"
-                                         src="~/Icons/SideBar/Explore.svg" />
-                                    <span class="text">Upload Pipeline</span>
-                                </div>
-                            </a>
-                        </li>
                         </ul>
                     </div>
                 </li>
@@ -381,10 +365,9 @@
                                silkflo-action="SideBar: Settings > Tenant > APIAccess "
                                onclick="SilkFlo.SideBar.OnClick ( '/APIAccessController/Business-Units' )"
                                silkflo-parent-menu-id="SideBar.Settings.Container"
-                               title="Show Platform Setup">
+                               title="Access API">
                                 <div class="pointer">
-                                    <img class="icon"
-                                         src="~/Icons/SideBar/Settings.svg" />
+                                    <i class="bi bi-grid-fill" style="font-size:23px"></i>
                                     <span class="text">API</span>
                                 </div>
                             </a>
@@ -392,22 +375,6 @@
                         </ul>
                     </div>
                 </li>
-            <li id="SideBar.Settings.Tenant.UploadPipeline.Container">
-                <a class="pointer"
-                   data-bs-target="tooltip"
-                   data-placement="right"
-                   id="SideBar.Settings.Tenant.UploadPipeline"
-                   silkflo-action="SideBar: Settings > Tenant > Upload Pipeline"
-                   onclick="SilkFlo.SideBar.OnClick ( '/ApisController/Upload-Pipeline/Pipeline-Units' )"
-                   silkflo-parent-menu-id="SideBar.Settings.Container"
-                   title="Show Upload Pipeline">
-                    <div class="pointer">
-                        <img class="icon"
-                             src="~/Icons/SideBar/Explore.svg" />
-                        <span class="text">Upload Pipeline</span>
-                    </div>
-                </a>
-            </li>
             }
 
             @if ((await _authorizationService.AuthorizeAsync(User, "Can View Administration Area")).Succeeded)

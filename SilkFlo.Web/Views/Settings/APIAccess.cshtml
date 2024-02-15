@@ -1,67 +1,77 @@
-
-
 <style>
-    .custom-switch {
-        position: relative;
-        display: inline-block;
-        width: 55px;
-        height: 25px;
-    }
+	.custom-switch {
+		position: relative;
+		display: inline-block;
+		width: 55px;
+		height: 25px;
+	}
 
-        .custom-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+		.custom-switch input {
+			opacity: 0;
+			width: 0;
+			height: 0;
+		}
 
-    .custom-slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        transition: .4s;
-    }
+	.custom-slider {
+		position: absolute;
+		cursor: pointer;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #ccc;
+		transition: .4s;
+	}
 
-        .custom-slider:before {
-            position: absolute;
-            content: "";
-            height: 25px;
-            width: 26px;
-            background-color: white;
-            transition: .4s;
-        }
+		.custom-slider:before {
+			position: absolute;
+			content: "";
+			height: 25px;
+			width: 26px;
+			background-color: white;
+			transition: .4s;
+		}
 
-    .custom-switch input:checked + .custom-slider {
-        background-color: #FF9B44;
-    }
+	.custom-switch input:checked + .custom-slider {
+		background-color: #FF9B44;
+	}
 
-    .custom-switch input:focus + .custom-slider {
-        box-shadow: 0 0 1px #FF9B44;
-    }
+	.custom-switch input:focus + .custom-slider {
+		box-shadow: 0 0 1px #FF9B44;
+	}
 
-    .custom-switch input:checked + .custom-slider:before {
-        transform: translateX(26px);
-    }
+	.custom-switch input:checked + .custom-slider:before {
+		transform: translateX(26px);
+	}
 
-    /* Rounded sliders */
-    .custom-slider.round {
-        border-radius: 25px;
-    }
+	/* Rounded sliders */
+	.custom-slider.round {
+		border-radius: 25px;
+	}
 
-        .custom-slider.round:before {
-            border-radius: 50%;
-        }
+		.custom-slider.round:before {
+			border-radius: 50%;
+		}
+
+		#myTable {
+			border-collapse: collapse;
+			width: 100%;
+			background-color: white;
+		}
+		#myTable th,
+		#myTable tr,
+		#myTable td {
+			border: none;
+			padding: 8px;
+			background-color: white;
+			border-collapse: collapse;
+		}
+		#myTable th {
+			background-color: white;
+			border-collapse: collapse;
+		}
+
 </style>
-
-
-
-
-
-
-
 
 
 <div class="TitleBar">
@@ -78,7 +88,7 @@
 		<h3 style=" font-style: normal;font-weight: 500;font-size: 16px;line-height: 24px;color: #353535;">Use our API to manipulate your tenant, or to integrate SilkFlo's data across a range of different technologies including RPA, IDP, chatbots, low-code and more... no matter which vendors you use.</h3>
 
 		<p style="font-size: 16px;  font-family: 'Poppins', sans-serif; font-weight: 600;">
-			<a href="#" style="color: #FF8A00;"> View Documentation</a>
+			<a href="#" style="color: #FF8A00;"> View Documentation <i class="bi bi-box-arrow-up-right bold" color="#FF8A00"></i></a>
 		</p>
 	</div>
 	<div style="background-color: white; padding: 20px; margin-top: 20px; width: 1030px; height: auto; display: flex; flex-direction: column; align-items: flex-start;">
@@ -100,91 +110,110 @@
 			</div>
 		</div>
 	</div>
-
-
 </div>
-
-
 
 <div class="row" style="margin-top:30px">
+	<div class="col-lg-12 col-sm-12 col-xs-12">
+		<div class="tab-content" style="margin-top: 0px; margin-top: -4px; border-left: 1px solid #ddd;">
+			<div role="tabpanel" class="tab-pane active" id="">
+				<div class="white-box">
+					<div class="table-responsive">
+						<div class="dataTables_wrapper no-footer" id="myTable_wrapper">
 
-    <div class="col-lg-12 col-sm-12 col-xs-12">
-        <div class="tab-content" style="margin-top: 0px; margin-top: -4px; border-left: 1px solid #ddd;">
-            <div role="tabpanel" class="tab-pane active" id="">
-                <div class="white-box">
-                    <div class="table-responsive">
-                        <div class="dataTables_wrapper no-footer" id="myTable_wrapper">
-                            <table class="table table-striped dataTable table-bordered no-footer color-table info-table" id="myTable" role="grid" aria-describedby="myTable_info">
-                                <thead>
-                                    <tr role="row">
-                                        <th>Name</th>
-                                        <th>Token</th>
-                                        <th>Description</th>
-                                        <th>Expires</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="table-body">
-                                   
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+	<table class="table dataTable table-bordered no-footer" style="width:85%" id="myTable" role="grid" aria-describedby="myTable_info">
+		<thead>
+			<tr role="row">
+				<th></th>
+				<th>Name</th>
+				<th>Token</th>
+				<th>Description</th>
+				<th>Expires</th>
+				<th>Active</th>
+			</tr>
+		</thead>
+		<tbody id="table-body">
+			<tr>
+				<td>1.</td>
+				<td>MITUser1</td>
+				<td>abcd***23ff******adctt34234</td>
+				<td>This key is generated for MIT user 1</td>
+				<td>Mar 29 2024</td>
+				<td>Yes</td>
+			</tr>
+			<tr>
+				<td>2.</td>
+				<td>BankerKeyAccess</td>
+				<td>ccfkkl***dr44******53ddffd</td>
+				<td>Key generated for Banker user 1</td>
+				<td>Apr 15 2024</td>
+				<td>Yes</td>
+			</tr>
+			<tr>
+				<td>3.</td>
+				<td>SilkFloUserKey</td>
+				<td>er33***fadr******er34dsf</td>
+				<td>SilkFlo user testing key for API Access</td>
+				<td>Dec 31 2024</td>
+				<td>No</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+					</div>
+				</div>
+			</div>
 
-        </div>
-    </div>
+		</div>
+	</div>
 </div>
 
-
-
-
-
 <div class="modal fade" id="ShowAddTokenModal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-content" style="border-radius: 10px; padding: 25px; max-width: 600px; height: 500px; text-align: left;">
-        <h2 class="text-center mx-auto" style="margin-bottom: 20px;">Add Token</h2>
+	<div class="modal-dialog modal-content" style="border-radius: 5px; padding: 25px; max-width: 600px; height: 525px; text-align: left;">
+		<h2 class="text-center mx-auto" style="margin-bottom: 20px;">Add Token</h2>
 
-        <form>
-            <div class="form-group">
-                <label for="tokenName">Name</label>
-                <input type="text" class="form-control" id="tokenName" maxlength="50">
-            </div>
+		<form>
+			<div class="form-group">
+				<label for="tokenName">Name<span style="color:red">*</span></label>
+				<input type="text" max-length="50" class="form-control" id="tokenName" maxlength="50">
+			</div>
 
-            <div class="form-group">
-                <label for="tokenDescription">Description</label>
-                <textarea class="form-control" id="tokenDescription" maxlength="100"></textarea>
-            </div>
+			<div class="form-group">
+				<label for="tokenDescription">Description<span style="color:red">*</span></label>
+				<textarea max-length="100" class="form-control" id="tokenDescription" maxlength="100"></textarea>
+			</div>
 
-            <div class="form-group">
-                <label for="tokenExpires">Expires</label>
-                <div class="input-group date" id="expiresDatePicker" data-target-input="nearest">
-                    <input type="text" class="form-control datetimepicker-input" data-target="#expiresDatePicker">
-                    <div class="input-group-append" data-target="#expiresDatePicker" data-toggle="datetimepicker">
-                        <div class="input-group-text"><i class="fa fa-calendar" onclick="expiresDatePicker()"></i></div>
-                    </div>
-                </div>
-            </div>
+			<div class="form-group">
+					<label for="tokenExpires">Expires<span style="color:red">*</span></label>
+					<div class="input-group date" id="expiresDatePicker" data-target-input="nearest" style="width:300px; position: relative;">
+	<input class="form-control bg-white datepicker" data-date-format="m/d/Y G:iK" data-enable-time="true" style="padding-right: 30px;"/>
+	<div style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%);">
+		<i class="bi bi-calendar blue"></i>
+	</div>
+</div>
 
-            <div class="form-group" style="display: flex; align-items: center;">
-              
-                <label class="custom-switch" style="margin-right: 10px;">
-                    <input type="checkbox" id="isActive" checked>
-                    <span class="custom-slider round"></span>
-                </label>
-                <label for="isActive">Active</label>
-            </div>
+			</div>
+
+
+			<div class="form-group" style="display: flex; align-items: center;">
+
+				<label class="custom-switch" style="margin-right: 10px;">
+					<input type="checkbox" id="isActive" checked>
+					<span class="custom-slider round"></span>
+				</label>
+				<label for="isActive">Active</label>
+			</div>
 			<div style="margin-top: 20px; display: flex; justify-content: center;">
-                <button class="btn" style="width: 120px; height: 40px; background-color: white; border: 1px solid #FF8A00; color: #FF8A00; cursor: pointer; font-size: medium; font-weight: 500;margin-right: 10px;" onclick="HideAddTokenModal()">
+				<button class="btn" style="width: 120px; height: 40px; background-color: white; border: 1px solid #FF8A00; color: #FF8A00; cursor: pointer; font-size: medium; font-weight: 500;margin-right: 10px;" onclick="HideAddTokenModal()">
 					Cancel
 				</button>
 
-                <button type="button" class="btn btn-warning" style="width: 120px; height: 40px;" onclick="SaveToken()">
+				<button type="button" class="btn btn-warning" style="width: 120px; height: 40px;" onclick="SaveToken()">
 					Save
 				</button>
 			</div>
 
-        </form>
-    </div>
+		</form>
+	</div>
 </div>
 
 
