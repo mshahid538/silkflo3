@@ -1,8 +1,22 @@
 ﻿if (!SilkFlo.ViewModels)
     SilkFlo.ViewModels = {};
 
-SilkFlo.ViewModels.UserProfile = {
+function helpOptionsIcon() {
+    var helpOptionsCard = document.getElementById("helpOptionsCard");
+    if (helpOptionsCard.style.display === 'none') {
+        helpOptionsCard.style.display = 'block';
+    } else {
+        helpOptionsCard.style.display = 'none';
+    }
+}
 
+function closeHelpOptionsIcon() {
+    var helpOptionsCard = document.getElementById("helpOptionsCard");
+    helpOptionsCard.style.display = 'none'
+}
+
+SilkFlo.ViewModels.UserProfile = {
+  
     // SilkFlo.ViewModels.UserProfile.GetParent
     GetParent: function () {
 

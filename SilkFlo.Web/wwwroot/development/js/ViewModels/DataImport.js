@@ -10,7 +10,7 @@
     //    toastElement.classList.add('show');
     //}
 }
-   
+
 function ContinueWorking() {
     $('#tstProgress').toast('show');
 }

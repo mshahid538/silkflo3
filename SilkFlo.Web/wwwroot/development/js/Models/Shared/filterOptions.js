@@ -170,7 +170,7 @@ function applyAndAdjustFilteredDataIntoExistingView() {
             queryParams = "?teamsId=" + selectedFTOption.join(',');
         }
     }
-    
+
 
     var loaderElement = document.getElementById("quickFilter-loader");
     loaderElement.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
@@ -201,7 +201,7 @@ function applyAndAdjustFilteredDataIntoExistingView() {
     });
 
     $.get("/api/Dashboard/GetAutomationProgramPerformance" + queryParams, function (getSummaryResponse) {
-        
+
         var myDiv = document.getElementById("Chart.AutomationProgramPerformance");
 
         // Remove all child elements
@@ -212,7 +212,7 @@ function applyAndAdjustFilteredDataIntoExistingView() {
     });
 
     $.get("/api/Business/Idea/GetSummary" + queryParams, function (getSummaryResponse) {
-        
+
         var myDiv = document.getElementById("Business.Idea.Summary");
 
         // Remove all child elements
@@ -229,13 +229,13 @@ function applyAndAdjustFilteredDataIntoExistingView() {
 function clearAllFiltersAndAdjustDataIntoExistingView() {
     $('#exampleModalCenter').modal('hide');
     reRenderFilterOptionModal();
-    
+
     //
     $("#totalIdeas").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
     $("#totalInBuild").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
     $("#totalDeployed").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
     $("#totalDeploymentBenefits").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
-    
+
     //close modal
     $('#exampleModalCenter').modal('hide');
 
@@ -348,7 +348,7 @@ function applyFiltersAndAdjustWorkshopCurrentView() {
         applyFiltersAndAdjustWorkshopDeployedView();
         return;
     }
-    
+
 
     const perfFilterRadioOptions = document.querySelectorAll('input[name="dateSpanRd"]');
     let selectedOption, queryParams = "";
@@ -602,7 +602,7 @@ function applyFiltersAndAdjustWorkshopStatusView() {
         console.log("totalIdeaResponse", totalIdeaResponse);
         console.log("awaitingReviewReponse", awaitingReviewReponse)
 
-        var tilesViewerHtml = '<div silkflo-url="tile/StageGroup/Review/TotalIdeas">'+ totalIdeaResponse[0] + '</div>' +
+        var tilesViewerHtml = '<div silkflo-url="tile/StageGroup/Review/TotalIdeas">' + totalIdeaResponse[0] + '</div>' +
             '<div silkflo-url="tile/StageGroup/Review/AwaitingReview">' + awaitingReviewReponse[0] + '</div>';
         $("#tilesViewer").html(tilesViewerHtml);
     });
@@ -1004,8 +1004,8 @@ function applyFiltersAndAdjustWorkshopBuildView() {
 
         var tilesViewerHtml = '<div silkflo-url="tile/StageGroup/Build/TotalInBuild">' + totalInBuildResponse[0] + '</div>' +
             '<div silkflo-url="tile/StageGroup/Build/PotentialBenefit">' + potentialBenefitResponse[0] + '</div>' +
-            '<div silkflo-url="tile/StageGroup/Build/TotalAtRisk">' + totalAtRiskResponse[0] + '</div>' + 
-            '<div silkflo-url="tile/StageGroup/Build/TotalBenefitAtRisk">' + totalBenefitAtRiskResponse[0] + '</div>' + 
+            '<div silkflo-url="tile/StageGroup/Build/TotalAtRisk">' + totalAtRiskResponse[0] + '</div>' +
+            '<div silkflo-url="tile/StageGroup/Build/TotalBenefitAtRisk">' + totalBenefitAtRiskResponse[0] + '</div>' +
             '<div silkflo-url="tile/StageGroup/Build/EstimatedOneTimeCost">' + estimatedOneTimeCostResponse[0] + '</div>';
         $("#tilesViewer").html(tilesViewerHtml);
 
@@ -1178,7 +1178,7 @@ function applyFiltersAndAdjustWorkshopDeployedView() {
 
 //clear--behaviours
 
-function clearAllFiltersAndAdjustDataIntoCurrentView(){
+function clearAllFiltersAndAdjustDataIntoCurrentView() {
     var locations = window.location.href.split('/');
     if (locations && locations[locations.length - 1] == "Review") {
         clearApplyFiltersAndAdjustWorkshopStatusView();
@@ -1364,11 +1364,10 @@ function clearApplyFiltersAndAdjustWorkshopDeployedView() {
 }
 
 
-//window.addEventListener('popstate',
-    function showTooltips() {
+function showTooltips() {
     //if (window.location.href.includes('#new')) {
 
-        var modalViewCode = `
+    var modalViewCode = `
       <div class="modal fade" id="SilkfloModal" tabindex="-1" aria-labelledby=" Message Box"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="width: 446px;
@@ -1387,18 +1386,50 @@ height: 527px;">
         </div>
       </div>`;
 
-        // Add the modal view code to the DOM
-        $(modalViewCode).appendTo("body");
+    // Add the modal view code to the DOM
+    $(modalViewCode).appendTo("body");
 
-        // Open the modal
-        $("#SilkfloModal").modal("show");
+    // Open the modal
+    $("#SilkfloModal").modal("show");
 
+}
 
-        //setTimeout(() => {
-        //    $('#SilkfloModal').modal('show');
-        //});
-    }
-//});
+function showSubmitIdeaModal() {
+    //if (window.location.href.includes('#new')) {
+
+    let modalViewCode = `
+      <div class="modal fade" id="submitIdeaModal" tabindex="-1" aria-labelledby=" Message Box" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="width: 446px; height: 527px;">
+          <div class="modal-content silkflo-modal-content">
+            <div class="modal-header"></div>
+            <div class="modal-body" name="Message">
+              <h2 class="modal-title" name="Title">Welcome to Silkflo!</h2>
+              <h3 class="header-modal-version">V.12.4</h3>
+<br/>
+              <h3>Submit an Idea</h3>    
+              <p class="silkflo-modal-content-width" style="margin-top: 16px; margin-bottom: 10px;"> Your work day can be full of manual, repetitive tasks or processes that somehow, have become the norm. It doesn’t have to be that way.</p>
+
+  <p class="silkflo-modal-content-width" style="margin-top: 16px; margin-bottom: 10px;">That’s where Ai and automation comes in to help.</p>
+
+  <p class="silkflo-modal-content-width" style="margin-top: 16px; margin-bottom: 10px;"> Delegating those tedious tasks to a digital worker (AI or automation software) can help free you up to do more of the work that you enjoy.</p>
+
+  <p class="silkflo-modal-content-width" style="margin-top: 16px; margin-bottom: 10px;"> Get started by submitting an idea for a process you’d like automated or enhanced!</p>
+            </div>
+            <button type="button" class="silkflo-modal-content-btn" style="margin:16px " onclick="showSubmitAnIdeaTooltip()"><span>Get started</span></button>
+          </div>
+        </div>
+      </div>`;
+
+    // Add the modal view code to the DOM
+    //$("#SilkfloModal body").empty();
+    $(modalViewCode).appendTo("body");
+
+    // Open the modal
+    
+    $("#submitIdeaModal").modal("show");
+
+}
+
 
 function showExplore() {
     //hide
@@ -1417,7 +1448,7 @@ height: 527px;">
               <h3 class="header-modal-version">V.12.4</h3>
               
               <h2 class="silkflo_modal_title" name="Title" style="margin-top:25px">Explore</h2>
-              <p class="silkflo-modal-content-width" style="margin-top: 16px; margin-bottom: 10px;">Explore, like and follow the idea and automations shared from across the business and see the people who are part of your digital journey.</p>
+              <p class="silkflo-modal-content-width" style="margin-top: 16px; margin-bottom: 10px;">Explore, like and follow the ideas for AI and automations shared from across the business. Plus, see the people who also are part of your Digital journey.</p>
             </div>
             <button type="button" class="silkflo-modal-content-btn" style="margin:16px " onclick="showWorkshop()"><span>Next</span></button>
           </div>
@@ -1470,9 +1501,8 @@ height: 527px;">
 }
 
 function showPlatformSetup() {
-    //hide
-    // Open the modal
     $(".tooltipWorkShop").css('display', 'none');
+
     $('#menu li.active').removeClass('active');
     var modalViewCode = `
       <div class="modal fade" id="SilkfloPlatformSetupModal" tabindex="-1" aria-labelledby="Message Box"
@@ -1484,7 +1514,7 @@ height: 527px;">
             <div class="modal-body" name="Message">
               <h2 class="modal-title" name="Title">Tour Complete!</h2>
              
-              <p class="silkflo-modal-content-width" style="margin-top: 16px; margin-bottom: 10px;">You've finished the quick tour of SilkFlo. If you have any further questions, please visit our help docs or contact support@silkflo.com</p>
+              <p class="silkflo-modal-content-width" style="margin-top: 16px; margin-bottom: 10px;">You've finished the quick tour of SilkFlo. If you have any further questions, please visit our <a href='https://silkflo.com/docs/' target='_blank' style="color:blue">help docs</a> or contact support@silkflo.com</p>
             </div>
             <button type="button" class="silkflo-modal-content-btn" style="margin:16px " onclick="hidePlatformSetupModal()"><span>Finish</span></button>
           </div>
@@ -1507,6 +1537,15 @@ function hidePlatformSetupModal() {
     }
     /*  $('#SideBar.Dashboard.Container').addClass('active');*/
     $("#SilkfloPlatformSetupModal").modal("hide");
+
+    if (window.location.hash.includes("#new_")) {
+        showSubmitIdeaModal();
+    }
+}
+
+function submitAnIdeaOkClick() {
+    $('.tooltipSubmitAnIdea').css('display', 'none');
+
 }
 
 function showDashboardTooltip() {
@@ -1519,14 +1558,36 @@ function showDashboardTooltip() {
     const { top, left, right, bottom } = boundingRect;
 
     $("#SilkfloModal").modal("hide");
+    //if the user is standard user
+    if (window.location.hash.includes("#new_")) {
+        $('#tooltip1 p')[0].innerHTML = 'Here, you can see all of the automation ideas you’ve submitted, contribute to and even track their progress. Check in regularly to see how they evolve!';
+        $('#tooltip1').css('height', '160px');
+        $('#tooltip1 button').css('margin-top', '50px');
+    }
+    $('.tooltipSubmitAnIdea').css('display', 'none');
     $('.tooltipDashboard').css('display', 'block');
     const newTopPosition = top - 15;
     $("#tooltip1arrow").css('top', top);
-    $("#tooltip1arrow").css('left', '175px');
+    $("#tooltip1arrow").css('left', '173px');
     $('#tooltip1').css('left', '182px');
     $('#tooltip1').css('top', newTopPosition);
 
 
+}
+
+function showSubmitAnIdeaTooltip() {
+    $("#submitIdeaModal").modal("hide");
+    setTimeout(function () {
+        liElement = document.getElementById('SideBar.Dashboard.Container'); 
+        const boundingRect = liElement.getBoundingClientRect();
+        const { top, left, right, bottom } = boundingRect;
+        $('#tooltipSubmitAnIdea').css('display', 'block');
+        const newTopPosition = top - 15;
+        $("#tooltipsubideaarrow").css('top', '95.73px');
+        $("#tooltipsubideaarrow").css('left', '245px');
+        $('#tooltipSubIdea').css('left', '253px');
+        $('#tooltipSubIdea').css('top', '86.71px');
+    }, 3000);
 }
 
 function showDashboardTourTooltip() {
@@ -1542,7 +1603,7 @@ function showDashboardTourTooltip() {
     $('.tooltipDashboard').css('display', 'block');
     const newTopPosition = top - 15;
     $("#tooltip1arrow").css('top', top);
-    $("#tooltip1arrow").css('left', '175px');
+    $("#tooltip1arrow").css('left', '173px');
     $('#tooltip1').css('left', '182px');
     $('#tooltip1').css('top', newTopPosition);
 
@@ -1563,7 +1624,7 @@ function showExploreTooltip() {
     const newTopPosition = top - 15;
     $("#tooltip2arrow").css('top', top);
     $('#tooltip2').css('top', newTopPosition);
-    $("#tooltip2arrow").css('left', '175px');
+    $("#tooltip2arrow").css('left', '173px');
     $('#tooltip2').css('left', '182px');
 
     $('#menu li.active').removeClass('active');
@@ -1578,7 +1639,34 @@ function showWorkShopTooltip() {
     //hide
     // Open the modal
     $(".tooltipExplore").css('display', 'none');
-    $('.tooltipWorkShop').css('display', 'block');
+    if (!window.location.hash.includes("#new_")) {
+        $('.tooltipWorkShop').css('display', 'block');
+    }
+    else {
+        $('#menu li.active').removeClass('active');
+        var modalViewCode = `
+      <div class="modal fade" id="SilkfloPlatformSetupModal" tabindex="-1" aria-labelledby="Message Box"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="width: 446px;
+height: 527px;">
+          <div class="modal-content silkflo-modal-content">
+            <div class="modal-header"></div>
+            <div class="modal-body" name="Message">
+              <h2 class="modal-title" name="Title">Tour Complete!</h2>
+             
+              <p class="silkflo-modal-content-width" style="margin-top: 16px; margin-bottom: 10px;">You've finished the quick tour of SilkFlo. If you have any further questions, please visit our <a href='https://silkflo.com/docs/' target='_blank' style="color:blue">help docs</a> or contact support@silkflo.com</p>
+            </div>
+            <button type="button" class="silkflo-modal-content-btn" style="margin:16px " onclick="hidePlatformSetupModal()"><span>Finish</span></button>
+          </div>
+        </div>
+      </div>`;
+
+        // Add the modal view code to the DOM
+        $(modalViewCode).appendTo("body");
+        // Open the modal
+        $("#SilkfloPlatformSetupModal").modal("show");
+    }
+
     liElement = document.getElementById('SideBar.Workshop.Container'); // Replace 'li2' with the desired ID
     // Get the position of the <li> element relative to the viewport
     const boundingRect = liElement.getBoundingClientRect();
@@ -1588,7 +1676,7 @@ function showWorkShopTooltip() {
     $("#tooltip3arrow").css('top', top);
     /* $("#tooltip3arrow").css('left', '178px');*/
     $('#tooltip3').css('top', newTopPosition);
-    $("#tooltip3arrow").css('left', '193px');
+    $("#tooltip3arrow").css('left', '190px');
     $('#tooltip3').css('left', '200px');
     $('#menu li.active').removeClass('active');
     const sidebarExploreContainer = document.getElementById('SideBar.Workshop.Container');

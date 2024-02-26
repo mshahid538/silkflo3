@@ -61,7 +61,6 @@
         "wwwroot/development/js/ViewModels/Settings/PlatformSetup.CostSetUp.OtherRunningCosts.js",
         "wwwroot/development/js/ViewModels/Settings/PlatformSetup.CostSetUp.RunningCosts.js",
         "wwwroot/development/js/ViewModels/Settings/PlatformSetup.CostSetUp.SoftwareVender.js",
-        "wwwroot/development/js/ViewModels/Settings/APIAccess.js",
         "wwwroot/development/js/ViewModels/User.js",
         "wwwroot/development/js/ViewModels/UserProfile.js",
         "wwwroot/development/js/ViewModels/Business/Idea/Edit.js",

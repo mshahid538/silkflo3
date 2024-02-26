@@ -356,25 +356,9 @@
                                     </div>
                                 </a>
                             </li>
-
-                        <li id="SideBar.Settings.Tenant.APIAccess.Container">
-                            <a class="pointer"
-                               data-bs-target="tooltip"
-                               data-placement="right"
-                               id="SideBar.Settings.Tenant.APIAccess"
-                               silkflo-action="SideBar: Settings > Tenant > APIAccess "
-                               onclick="SilkFlo.SideBar.OnClick ( '/APIAccessController/Business-Units' )"
-                               silkflo-parent-menu-id="SideBar.Settings.Container"
-                               title="Access API">
-                                <div class="pointer">
-                                    <i class="bi bi-grid-fill" style="font-size:23px"></i>
-                                    <span class="text">API</span>
-                                </div>
-                            </a>
-                        </li>
                         </ul>
                     </div>
-                </li>
+                </li>  
             }
 
             @if ((await _authorizationService.AuthorizeAsync(User, "Can View Administration Area")).Succeeded)

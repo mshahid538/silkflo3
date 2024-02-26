@@ -298,7 +298,8 @@ namespace SilkFlo.Web.Controllers.Business
 
         private async Task<List<Models.Business.IdeaStage>> GetGanttChartStages(string ideaId)
         {
-            var stages = (await _unitOfWork.SharedStages.FindAsync(x => !x.SetDateAutomatically)).ToArray();
+            //var stages = (await _unitOfWork.SharedStages.FindAsync(x => !x.SetDateAutomatically)).ToArray();
+            var stages = (await _unitOfWork.SharedStages.FindAsync(x => x.SetDateAutomatically)).ToArray();
 
 
             var cores = (await _unitOfWork.BusinessIdeaStages

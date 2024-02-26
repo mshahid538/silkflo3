@@ -407,6 +407,9 @@
         color: #bbbbbe;
         font-size: 14px;
     }
+.tooltipSubmitAnIdea {
+    display: block;
+}
 
 .tooltipDashboard {
     display: block;
@@ -438,12 +441,19 @@
     height: 141px;
     position: absolute;
     background: white;
-    box-shadow: 0px 0px 15px 0px rgba(214, 215, 216, 0.5);
     border-radius: 13px;
     padding: 10px;
     width: 16rem;
 }
-
+.silkflo_tooltip-submit-idea {
+    z-index: 1000;
+    height: 114px;
+    position: absolute;
+    background: white;
+    border-radius: 13px;
+    padding: 10px;
+    width: 16rem;
+}
 .silkflo_tooltip-title {
     color: #334155;
     margin-block-start: 0px !important;
@@ -478,6 +488,22 @@
     margin: 2rem 2.4rem;
     padding: 0.2rem;
 }
+.silkflo_tooltip-submit-idea-next {
+    width: 30%;
+    position: absolute;
+    top: 45px;
+    right: -26px;
+    cursor: pointer;
+    color: #6f7a8a;
+    font-size: 15px;
+    font-weight: 500;
+    background-color: #ff8a00;
+    border-radius: 3PX;
+    color: white;
+    border: 0px;
+    margin: 2rem 2.4rem;
+    padding: 0.2rem;
+}
 
 .silkflo_tooltip-close {
     position: absolute;
@@ -501,7 +527,10 @@
     width: 17px;
     margin-right: 10px;
 }
-
+.silkflo_tooltip-submit-idea h2 img {
+    width: 17px;
+    margin-right: 10px;
+}
 .silkflo_tooltipContainer {
     display: none;
     position: absolute;
