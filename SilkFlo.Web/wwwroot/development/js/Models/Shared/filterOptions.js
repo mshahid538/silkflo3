@@ -1395,9 +1395,8 @@ height: 527px;">
 }
 
 function showSubmitIdeaModal() {
-    //if (window.location.href.includes('#new')) {
-
-    let modalViewCode = `
+    setTimeout(function () {
+        let modalViewCode = `
       <div class="modal fade" id="submitIdeaModal" tabindex="-1" aria-labelledby=" Message Box" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="width: 446px; height: 527px;">
           <div class="modal-content silkflo-modal-content">
@@ -1409,7 +1408,7 @@ function showSubmitIdeaModal() {
               <h3>Submit an Idea</h3>    
               <p class="silkflo-modal-content-width" style="margin-top: 16px; margin-bottom: 10px;"> Your work day can be full of manual, repetitive tasks or processes that somehow, have become the norm. It doesn’t have to be that way.</p>
 
-  <p class="silkflo-modal-content-width" style="margin-top: 16px; margin-bottom: 10px;">That’s where Ai and automation comes in to help.</p>
+  <p class="silkflo-modal-content-width" style="margin-top: 16px; margin-bottom: 10px;">That’s where AI and automation comes in to help.</p>
 
   <p class="silkflo-modal-content-width" style="margin-top: 16px; margin-bottom: 10px;"> Delegating those tedious tasks to a digital worker (AI or automation software) can help free you up to do more of the work that you enjoy.</p>
 
@@ -1419,14 +1418,13 @@ function showSubmitIdeaModal() {
           </div>
         </div>
       </div>`;
+        $(modalViewCode).appendTo("body");
 
-    // Add the modal view code to the DOM
-    //$("#SilkfloModal body").empty();
-    $(modalViewCode).appendTo("body");
+        $("#submitIdeaModal").modal("show");
 
-    // Open the modal
-    
-    $("#submitIdeaModal").modal("show");
+    }, 3000);
+
+   
 
 }
 
@@ -1577,17 +1575,15 @@ function showDashboardTooltip() {
 
 function showSubmitAnIdeaTooltip() {
     $("#submitIdeaModal").modal("hide");
-    setTimeout(function () {
         liElement = document.getElementById('SideBar.Dashboard.Container'); 
         const boundingRect = liElement.getBoundingClientRect();
         const { top, left, right, bottom } = boundingRect;
         $('#tooltipSubmitAnIdea').css('display', 'block');
         const newTopPosition = top - 15;
         $("#tooltipsubideaarrow").css('top', '95.73px');
-        $("#tooltipsubideaarrow").css('left', '245px');
-        $('#tooltipSubIdea').css('left', '253px');
+        $("#tooltipsubideaarrow").css('left', '255px');
+        $('#tooltipSubIdea').css('left', '263px');
         $('#tooltipSubIdea').css('top', '86.71px');
-    }, 3000);
 }
 
 function showDashboardTourTooltip() {
