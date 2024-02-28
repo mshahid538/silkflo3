@@ -156,7 +156,7 @@ function btnTFilesUpload() {
                 $("#ShowUploadPipelineMessageModal").modal("show");
 
             } else {
-                $("#InvalidFileTemplate").css("display", "block");
+                $("#InvalidFileTemplate").text(response.message).css("display", "block");
                 return;
             }
         },
