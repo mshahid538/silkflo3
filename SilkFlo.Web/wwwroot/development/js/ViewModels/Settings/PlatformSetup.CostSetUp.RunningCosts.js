@@ -509,6 +509,10 @@ SilkFlo.ViewModels.Settings.PlatformSetup.CostSetup.RunningCosts = {
             return;
         }
 
+        if (this.TableRows.some(row => row.VenderId.toLowerCase() === model.VenderId.toLowerCase() && row.AutomationTypeId.toLowerCase() === model.AutomationTypeId.toLowerCase() && row.LicenceType.toLowerCase() === model.LicenceType.toLowerCase())) {
+            this.SetMessage('A record already exist. Please choose a unique licence Type for same Vendor and Automation', 'text-warning');
+            return;
+        }
 
         const url = '/api/Business/runningCost/Post';
         SilkFlo.Models.Abstract.Save(
@@ -519,6 +523,9 @@ SilkFlo.ViewModels.Settings.PlatformSetup.CostSetup.RunningCosts = {
             url,
             'POST');
     },
+
+
+
 
 
     Save_CallBack: function (
