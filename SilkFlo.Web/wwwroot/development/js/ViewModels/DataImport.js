@@ -172,14 +172,27 @@ $(document).on('click', '.btnDeleteRow', function () {
 
 function saveCOEData() {
 
+    $("#duplicateIdeasText").css("display", "none");
+    $("#emptyNamesText").css("display", "none");
+    $("#emptyDescriptionText").css("display", "none");
+    $("#exceedDescriptionText").css("display", "none");
+    $("#exceedNameText").css("display", "none");
+    $("#EmptyFileText").css("display", "none");
+    
     var tableData = [];
 
     var hasDuplicates = false;
+    var hasEmptyNames = false;
+    var hasEmptyDescription = false;
+    var exceedNameLength = false;
+    var exceedDescriptionLength = false;
 
 
     $("#Coedatalist tbody tr").each(function () {
         var rowData = {};
         var $row = $(this);
+
+        $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', '');
 
         $row.find('td').each(function (index) {
             var columnName = $("#Coedatalist thead tr td").eq(index).text();
@@ -190,9 +203,31 @@ function saveCOEData() {
         });
 
         var name = rowData['Name'];
-        if (tableData.some(item => item['Name'] === name)) {
+        var description = rowData['Description'];
+        if (!name.trim()) {
+            $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
+            hasEmptyNames = true;
+        }
+        else if (tableData.some(item => item['Name'] === name)) {
             $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
             hasDuplicates = true;
+        }
+
+
+        else if (!description.trim()) {
+            $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
+            hasEmptyDescription = true;
+        }
+
+
+       else if (description.length > 10000) {
+            $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
+            exceedDescriptionLength = true;
+        }
+
+       else if (name.length > 100) {
+            $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
+            exceedNameLength = true;
         }
 
         tableData.push(rowData);
@@ -203,8 +238,28 @@ function saveCOEData() {
         return;
     }
 
-    if (hasDuplicates) {
+   else if (hasDuplicates) {
         $("#duplicateIdeasText").css("display", hasDuplicates ? "block" : "none");
+        return;
+    }
+
+   else if (hasEmptyNames) {
+        $("#emptyNamesText").css("display", hasEmptyNames ? "block" : "none");
+        return;
+    }
+
+    else if (hasEmptyDescription) {
+        $("#emptyDescriptionText").css("display", hasEmptyDescription ? "block" : "none");
+        return;
+    }
+
+    else if (exceedDescriptionLength) {
+        $("#exceedDescriptionText").css("display", exceedDescriptionLength ? "block" : "none");
+        return;
+    }
+
+   else if (exceedNameLength) {
+        $("#exceedNameText").css("display", exceedNameLength ? "block" : "none");
         return;
     }
 
