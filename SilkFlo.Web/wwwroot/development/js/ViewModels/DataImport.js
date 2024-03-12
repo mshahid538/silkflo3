@@ -1,4 +1,7 @@
-﻿window.onload = function () {
+﻿/* eslint-disable no-restricted-globals */
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
+window.onload = function () {
     //$('#tstProgress').toast('show');
     //$('#tstSuccess').toast('show');
 
@@ -178,7 +181,7 @@ function saveCOEData() {
     $("#exceedDescriptionText").css("display", "none");
     $("#exceedNameText").css("display", "none");
     $("#EmptyFileText").css("display", "none");
-    
+
     var tableData = [];
 
     var hasDuplicates = false;
@@ -220,12 +223,12 @@ function saveCOEData() {
         }
 
 
-       else if (description.length > 10000) {
+        else if (description.length > 10000) {
             $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
             exceedDescriptionLength = true;
         }
 
-       else if (name.length > 100) {
+        else if (name.length > 100) {
             $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
             exceedNameLength = true;
         }
@@ -238,12 +241,12 @@ function saveCOEData() {
         return;
     }
 
-   else if (hasDuplicates) {
+    else if (hasDuplicates) {
         $("#duplicateIdeasText").css("display", hasDuplicates ? "block" : "none");
         return;
     }
 
-   else if (hasEmptyNames) {
+    else if (hasEmptyNames) {
         $("#emptyNamesText").css("display", hasEmptyNames ? "block" : "none");
         return;
     }
@@ -258,7 +261,7 @@ function saveCOEData() {
         return;
     }
 
-   else if (exceedNameLength) {
+    else if (exceedNameLength) {
         $("#exceedNameText").css("display", exceedNameLength ? "block" : "none");
         return;
     }

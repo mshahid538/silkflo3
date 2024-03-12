@@ -370,6 +370,33 @@
                                                  "Id",
                                                  "Name")
         })
+
+
+        <!-- Tenant Input -->
+            @await Html.PartialAsync("Elements/_LabeledInput",
+                new SilkFlo.Web.ViewModels.Element
+                {
+                    Title = "Azure Tenant ID",
+                    Id = "TenantId",
+                    Name = "TenantId",
+                    Value = Model.TenantId,
+                    ElementType = "text",
+                    InvalidFeedback = ""
+                })
+
+        <!-- OtherDomain Input -->
+        @await Html.PartialAsync("Elements/_LabeledInput",
+            new SilkFlo.Web.ViewModels.Element
+            {
+                Title = "Multi Domains",
+                Id = "OthetDomain",
+                Name = "OthetDomain",
+                Value = Model.OtherDomain,
+                ElementType = "text",
+                InvalidFeedback = ""
+            })
+
+
             <!-- CreatedBy Input -->
             @await Html.PartialAsync("Elements/_LabeledInput",
                 new SilkFlo.Web.ViewModels.Element

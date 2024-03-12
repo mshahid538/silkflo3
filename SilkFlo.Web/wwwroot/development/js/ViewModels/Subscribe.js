@@ -1745,7 +1745,8 @@ SilkFlo.ViewModels.Subscribe = {
 
             const elements = SilkFlo.ViewModels.Subscribe.Stripe.StripeElements;
             //const url = `https://localhost:44349/shop/SubscriptionComplete/clientId/${model.ClientId}/PriceId/${model.PriceId}`;
-            const url = `https://silkflo-test.azurewebsites.net/shop/SubscriptionComplete/clientId/${model.ClientId}/PriceId/${model.PriceId}`;
+            //const url = `https://silkflo-test.azurewebsites.net/shop/SubscriptionComplete/clientId/${model.ClientId}/PriceId/${model.PriceId}`;
+            const url = `https://app.silkflo.com/shop/SubscriptionComplete/clientId/${model.ClientId}/PriceId/${model.PriceId}`;
 
             //event.preventDefault();
             const stripe = SilkFlo.ViewModels.Subscribe.Stripe.Object;

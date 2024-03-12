@@ -13,18 +13,29 @@ using System.Collections.Generic;
 using ExcelDataReader;
 using System.Linq;
 using SilkFlo.Web.ViewModels.Dashboard;
+using MediatR;
+using Silkflo.API.Services.Ideas.Queries;
+using Silkflo.API.Services.ClientApplicationInterfaceSession.Command;
+using Microsoft.Extensions.Logging;
+using Silkflo.API.Services.AccessKey.Queries;
 
 namespace SilkFlo.Web.Controllers
 {
     public class APIAccessController : AbstractAPI
     {
-        private readonly IConfiguration _configuration;
+        private readonly ILogger<APIAccessController> _logger;
+		private readonly IMediator _mediator;
+		private readonly IConfiguration _configuration;
 		static Dictionary<string, string> ImportStatus;
-        public APIAccessController(IUnitOfWork unitOfWork, ViewToString viewToString, IAuthorizationService authorization, IConfiguration configuration)
+
+        public APIAccessController(IUnitOfWork unitOfWork, ViewToString viewToString, IAuthorizationService authorization, IConfiguration configuration
+            , IMediator mediator, ILogger<APIAccessController> logger)
             : base(unitOfWork, viewToString, authorization)
         {
             _configuration = configuration;
             ImportStatus = new Dictionary<string, string>();
+            _mediator = mediator;
+            _logger = logger;
         }
 
         [HttpGet("/api/APIAccessController/{tab}")]
@@ -72,11 +83,26 @@ namespace SilkFlo.Web.Controllers
 
 
                 if (string.IsNullOrWhiteSpace(tab))
-                    tab = "business-units";
+                    tab = "api";
 
-                var aPIAccess = new ViewModels.Settings.APIAccess(
+
+				//var userId = GetUserId();
+				//var user = await _unitOfWork.Users.GetAsync(userId);
+				//var clients = await GetForUserValidatedAsync(user);
+
+				//var clientForApis = clients.FirstOrDefault(x => !String.IsNullOrEmpty(x.AgencyId));
+
+				var result = await _mediator.Send(new GetAllClientsAccessKeyQuery()
+				{
+					ClientId = client.Id
+				});
+
+
+				var aPIAccess = new ViewModels.Settings.APIAccess(
                     tab,
-                    client.IsPractice);
+                    client.IsPractice,
+                    result.Result
+                    );
 
 
                 const string url = "/Views/Settings/APIAccess.cshtml";
@@ -105,20 +131,61 @@ namespace SilkFlo.Web.Controllers
         {
             try
             {
-                string tokenName = data.tokenName;
-                string tokenDescription = data.tokenDescription;
-                string tokenExpires = data.tokenExpires;
-                bool isActive = data.isActive;
+				//var userId = GetUserId();
+				//var user = await _unitOfWork.Users.GetAsync(userId);
+				//var clients = await GetForUserValidatedAsync(user);
 
-                return Ok(new { status = true, message = "Token Saved." });
+				//var client = clients.FirstOrDefault(x => !String.IsNullOrEmpty(x.AgencyId));
+
+				var client = await GetClientAsync();
+
+				var result = await _mediator.Send(new CreateClientApplicationInterfaceSessionCommand() 
+                { 
+                    ClientId = client.Id,
+                    Description = data.tokenDescription,
+                    ExpirationDate = DateTime.Parse(data.tokenExpires),
+                    IsActive = data.isActive,
+                    Name = data.tokenName
+                });
+
+                return Ok(new { result.IsSucceed, result.Result });
             }
             catch (Exception ex)
             {
-                return Ok(new { status = false, message = "Some error occurred during SaveToken." });
+                _logger.LogError(ex.Message, ex);
+                return Ok(new { IsSucceed = false, message = "Some error occurred during SaveToken." });
             }
         }
 
-        public class TokenData
+
+		[HttpPost("/GetTokens")]
+		public async Task<IActionResult> GetTokens()
+		{
+			try
+			{
+				//var userId = GetUserId();
+				//var user = await _unitOfWork.Users.GetAsync(userId);
+				//var clients = await GetForUserValidatedAsync(user);
+
+				//var client = clients.FirstOrDefault(x => !String.IsNullOrEmpty(x.AgencyId));
+
+				var client = await GetClientAsync();
+
+				var result = await _mediator.Send(new GetAllClientsAccessKeyQuery()
+				{
+					ClientId = client.Id
+				});
+
+				return Ok(new { result.IsSucceed, result.Result });
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex.Message, ex);
+				return Ok(new { IsSucceed = false, message = "Some error occurred during SaveToken." });
+			}
+		}
+
+		public class TokenData
         {
             public string tokenName { get; set; }
             public string tokenDescription { get; set; }

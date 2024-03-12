@@ -147,19 +147,25 @@
                     </ul>
                 </div>
             </li>
-        <li id="SideBar.Workshop.Container">
-                <a class="pointer"
-                   data-bs-target="tooltip"
-                   data-placement="right"
-                   id="SideBar.Workshop"
-                   silkflo-action="SideBar: Workshop"
-                   onclick="SilkFlo.SideBar.OnClick ( '/Workshop/All' )"
-                   title="Show Workshop">
-                    <img class="icon"
-                         src="~/Icons/SideBar/Workshop.svg" />
-                    <span class="text" silkflo-hotspot="SiderBar-Workshop">Workshop</span>
-                </a>
-            </li>
+            @if (true) //(await _authorizationService.AuthorizeAsync(Policy.Administrator)).Succeeded)
+            {
+                @if ((await _authorizationService.AuthorizeAsync(User, "Manage Tenant Settings")).Succeeded)
+                {
+                    <li id="SideBar.Workshop.Container">
+                        <a class="pointer"
+                       data-bs-target="tooltip"
+                       data-placement="right"
+                       id="SideBar.Workshop"
+                       silkflo-action="SideBar: Workshop"
+                       onclick="SilkFlo.SideBar.OnClick ( '/Workshop/All' )"
+                       title="Show Workshop">
+                        <img class="icon"
+                             src="~/Icons/SideBar/Workshop.svg" />
+                        <span class="text" silkflo-hotspot="SiderBar-Workshop">Workshop</span>
+                    </a>
+                    </li>
+                }
+            }
         }
 
 
@@ -249,6 +255,23 @@
                                     </div>
                                 </a>
                             </li>
+                        <li id="SideBar.Settings.Tenant.APIAccess.Container">
+                            <a class="pointer"
+                               data-bs-target="tooltip"
+                               data-placement="right"
+                               id="SideBar.Settings.Tenant.APIAccess"
+                               silkflo-action="SideBar: Settings > Tenant > APIAccess "
+                               onclick="SilkFlo.SideBar.OnClick ( '/APIAccessController/Api' );"
+                               silkflo-parent-menu-id="SideBar.Settings.Container"
+                               title="Access API">
+                                <div class="pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-layout-wtf" style="margin-left:3px" viewBox="0 0 16 16">
+                                        <path d="M5 1v8H1V1zM1 0a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1zm13 2v5H9V2zM9 1a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM5 13v2H3v-2zm-2-1a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1zm12-1v2H9v-2zm-6-1a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1z" />
+                                    </svg>
+                                    <span class="text">API</span>
+                                </div>
+                            </a>
+                        </li>
                         </ul>
                     </div>
                 </li>
@@ -356,9 +379,27 @@
                                     </div>
                                 </a>
                             </li>
+
+                        <li id="SideBar.Settings.Tenant.APIAccess.Container">
+                            <a class="pointer"
+                               data-bs-target="tooltip"
+                               data-placement="right"
+                               id="SideBar.Settings.Tenant.APIAccess"
+                               silkflo-action="SideBar: Settings > Tenant > APIAccess "
+                               onclick="SilkFlo.SideBar.OnClick ( '/APIAccessController/Api' );"
+                               silkflo-parent-menu-id="SideBar.Settings.Container"
+                               title="Access API">
+                                <div class="pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-layout-wtf" style="margin-left:3px" viewBox="0 0 16 16">
+                                        <path d="M5 1v8H1V1zM1 0a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1zm13 2v5H9V2zM9 1a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM5 13v2H3v-2zm-2-1a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1zm12-1v2H9v-2zm-6-1a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1z" />
+                                    </svg>
+                                    <span class="text">API</span>
+                                </div>
+                            </a>
+                        </li>
                         </ul>
                     </div>
-                </li>  
+                </li>
             }
 
             @if ((await _authorizationService.AuthorizeAsync(User, "Can View Administration Area")).Succeeded)

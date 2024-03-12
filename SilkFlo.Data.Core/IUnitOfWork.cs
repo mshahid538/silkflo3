@@ -1488,7 +1488,11 @@ namespace SilkFlo.Data.Core
       [CallerLineNumber] int lineNumber = 0,
       string userId = "");
 
-        Task<List<Idea>> ImportBulkIdeas(List<Idea> ideas);
-        bool CheckIdeasWithExistingName(List<string> names);
+        Task<Client> GetClientByTenantId(string tenantId);
+        Task<User> GetUserByEmail(string email);
+
+        Task<(List<Idea>, int)> ImportBulkIdeas(List<Idea> ideas);
+        //bool CheckIdeasWithExistingName(List<string> names);
+        bool CheckIdeasWithExistingName(List<string> names, string clientId);
   }
 }

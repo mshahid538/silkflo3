@@ -14,8 +14,7 @@
 	#Coedata td:last-child,
 	#Coedatalist th:last-child,
 	#Coedatalist thead tr th,
-	#Coedatalist thead
-	{
+	#Coedatalist thead {
 		position: -webkit-sticky;
 		position: sticky;
 		background-color: #ffffff;
@@ -78,9 +77,9 @@
 					elementClass += " active";
 
 				<h3 class="@elementClass"
-				id="@stage"
-				onclick="SilkFlo.ViewModels.Workshop.GetContent ( this );"
-				url="@url">
+					id="@stage"
+					onclick="SilkFlo.ViewModels.Workshop.GetContent ( this );"
+					url="@url">
 					@stageGroup
 				</h3>
 			}
@@ -272,7 +271,7 @@
 					</table>
 
 					<br />
-					
+
 				</div>
 				<span id="EmptyFileText" style="color: red; display: none; display:none; margin-left:350px">Your File Is Empty</span>
 
@@ -302,10 +301,11 @@
 
 		</div>
 	</div>
-	<div class="modal fade" id="ShowDataProcessingModal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal fade" id="ShowDataProcessingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 646px">
 
-			<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
+			@*<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
+			*@
 			<span style="padding-left: 815px; font-family: 'Poppins', sans-serif; font-size: 14px; color: black; text-decoration: underline; margin-top:10px">Step 4 of 4</span>
 			<br />
 			<span style="padding-left: 260px; font-weight: bold; font-size: 28px; font-family: 'Manrope', sans-serif;">Your data is being imported..</span>
@@ -323,9 +323,9 @@
 			</div>
 			<br />
 			<div style="width: 50%; height: 6px;  background: linear-gradient(to right,  #2F80ED 50%, #D9DBE9 50%); margin: 20px auto;"></div>
-			<span style="padding-left: 150px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 18px;">This may take some time, feel free to close this window to continue working.</span>
-
-			<div>
+			@*<span style="padding-left: 150px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 18px;">Importing process may take some time.</span>
+			*@
+			@*<div>
 				<button type="button"
 						id="ContinueWorking"
 						onclick="continueWorking()"
@@ -336,7 +336,7 @@
 				<div style="margin-left: 400px; margin-top:230px;" id="loader">
 				</div>
 
-			</div>
+			</div>*@
 
 
 		</div>

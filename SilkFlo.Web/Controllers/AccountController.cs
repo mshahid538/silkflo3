@@ -31,6 +31,9 @@ using System.Net.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Http;
 using System.IdentityModel.Tokens.Jwt;
+using System.Web;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace SilkFlo.Web.Controllers;
 
@@ -38,13 +41,15 @@ namespace SilkFlo.Web.Controllers;
 public partial class AccountController : AbstractAPI
 {
     private readonly IConfiguration _configuration;
-    private readonly SaasFullfilmentManager _manager; 
+    private readonly SaasFullfilmentManager _manager;
+    private readonly ILogger<AccountController> _logger;
     public AccountController(IUnitOfWork unitOfWork,
         ViewToString viewToString,
-        IAuthorizationService authorization, IConfiguration configuration) : base(unitOfWork, viewToString, authorization)
+        IAuthorizationService authorization, IConfiguration configuration, ILogger<AccountController> logger) : base(unitOfWork, viewToString, authorization)
     {
         _configuration = configuration;
         _manager = new SaasFullfilmentManager(_configuration);
+        _logger = logger;
     }
 
 
@@ -713,12 +718,18 @@ public partial class AccountController : AbstractAPI
         var azureAdOptions = _configuration.GetSection("AzureAd").Get<SilkFlo.Web.Models.AzureAdOptions>();
 
         // Construct the sign-in URL
-        var signInUrl = $"{azureAdOptions.Instance}{azureAdOptions.TenantId}/oauth2/v2.0/authorize?" +
+        var signInUrl = $"{azureAdOptions.Instance}organizations/oauth2/v2.0/authorize?" +
             $"client_id={azureAdOptions.ClientId}&response_type=code%20id_token&" +
             $"response_mode=form_post&nonce={Guid.NewGuid()}" +
             $"redirect_uri={azureAdOptions.CallbackPath.TrimStart('/')}&state=silkflo_user&scope={azureAdOptions.Scopes}";
+        //var signInUrl = $"{azureAdOptions.Instance}{azureAdOptions.TenantId}/oauth2/v2.0/authorize?" +
+        //    $"client_id={azureAdOptions.ClientId}&response_type=code%20id_token&" +
+        //    $"response_mode=form_post&nonce={Guid.NewGuid()}" +
+        //    $"redirect_uri={azureAdOptions.CallbackPath.TrimStart('/')}&state=silkflo_user&scope={azureAdOptions.Scopes}";
 
         // Redirect the user to the sign-in URL
+
+        _logger.LogInformation($"MS-LoginRedirectCall | {signInUrl}");
         return Redirect(signInUrl);
     }
 
@@ -739,8 +750,9 @@ public partial class AccountController : AbstractAPI
 
     public async Task<IActionResult> SignInMicrosoftCallback(string code, string id_token, string state, string session_state)
     {
+        _logger.LogInformation($"MS-LoginRedirectCallback | CODE: {code} | id_token: {id_token} | state: {state}");
         // Retrieve the Azure AD app settings from configuration
-        var azureAdOptions = _configuration.GetSection("AzureAd").Get<SilkFlo.Web.Models.AzureAdOptions>();
+        //var azureAdOptions = _configuration.GetSection("AzureAd").Get<SilkFlo.Web.Models.AzureAdOptions>();
 
         try
         {
@@ -749,83 +761,320 @@ public partial class AccountController : AbstractAPI
                 #region Token claims
                 var handler = new JwtSecurityTokenHandler();
                 var jwtToken = handler.ReadJwtToken(id_token); // tokenResponse.AccessToken);
+                System.Security.Claims.Claim openidSubClaim = null, firstName = null, lastName = null, emailClaim = null, 
+                    tenantClaim = null, preferredEmailClaim = null;
 
-                var specificClaims = new List<string>();
-
-                // Retrieve specific claims based on the scopes
-                var claims = jwtToken.Claims;
-                var openidSubClaim = claims.FirstOrDefault(c => c.Type == "sub");
-                if (openidSubClaim != null)
+                if (jwtToken is not null)
                 {
-                    specificClaims.Add(openidSubClaim.Value);
-                }
+                    // Retrieve specific claims based on the scopes
+                    var claims = jwtToken.Claims ?? Enumerable.Empty<System.Security.Claims.Claim>();
+                    if (claims is not null && claims.Count() > 0)
+                    {
+                        _logger.LogInformation($"MS-LoginRedirectCallback | Claims: {JsonConvert.SerializeObject(claims)}");
 
-                //var profileClaims = new string[] { "given_name", "family_name", "name", "preferred_username", "birthdate", "gender" };
-                //foreach (var profileClaim in profileClaims)
-                //{
-                //    var claim = claims.FirstOrDefault(c => c.Type == profileClaim);
-                //    if (claim != null)
-                //    {
-                //        specificClaims.Add(claim.Value);
-                //    }
-                //}
-                var firstName = claims.FirstOrDefault(c => c.Type == "given_name");
-                var lastName = claims.FirstOrDefault(c => c.Type == "family_name");
+                        if (claims.Any(x => x.Type.ToLower().Equals("sub") && !String.IsNullOrEmpty(x.Value)))
+                        {
+                            openidSubClaim = claims.FirstOrDefault(c => c.Type == "sub");
+                            _logger.LogInformation($"MS-LoginRedirectCallback | OpenId Claim: {JsonConvert.SerializeObject(openidSubClaim)}");
+                        }
 
+                        if (claims.Any(x => x.Type.ToLower().Equals("given_name") && !String.IsNullOrEmpty(x.Value)))
+                        {
+                            firstName = claims.FirstOrDefault(c => c.Type == "given_name");
+                            _logger.LogInformation($"MS-LoginRedirectCallback | FirstName Claim: {JsonConvert.SerializeObject(firstName)}");
+                        }
 
-                var emailClaim = claims.FirstOrDefault(c => c.Type == "email");
-                if (emailClaim != null)
-                {
-                    specificClaims.Add(emailClaim.Value);
+                        if (claims.Any(x => x.Type.ToLower().Equals("family_name") && !String.IsNullOrEmpty(x.Value)))
+                        {
+                            lastName = claims.FirstOrDefault(c => c.Type == "family_name");
+                            _logger.LogInformation($"MS-LoginRedirectCallback | LastName Claim: {JsonConvert.SerializeObject(lastName)}");
+                        }
+
+                        if (claims.Any(x => x.Type.ToLower().Equals("email") && !String.IsNullOrEmpty(x.Value)))
+                        {
+                            emailClaim = claims.FirstOrDefault(c => c.Type == "email");
+                            _logger.LogInformation($"MS-LoginRedirectCallback | Email Claim: {JsonConvert.SerializeObject(emailClaim)}");
+                        }
+
+                        if (claims.Any(x => x.Type.ToLower().Equals("preferred_username") && !String.IsNullOrEmpty(x.Value)))
+                        {
+                            preferredEmailClaim = claims.FirstOrDefault(c => c.Type == "preferred_username");
+                            _logger.LogInformation($"MS-LoginRedirectCallback | Preferred Username Claim: {JsonConvert.SerializeObject(preferredEmailClaim)}");
+                        }
+
+                        if (claims.Any(x => x.Type.ToLower().Equals("tid") && !String.IsNullOrEmpty(x.Value)))
+                        {
+                            tenantClaim = claims.FirstOrDefault(c => c.Type == "tid");
+                            _logger.LogInformation($"MS-LoginRedirectCallback | Tenant Claim: {JsonConvert.SerializeObject(tenantClaim)}");
+                        }
+                    }
                 }
                 #endregion
 
-
                 if (!String.IsNullOrEmpty(state))
                 {
+                    _logger.LogInformation($"MS-LoginRedirectCallback | Begin SSO processing ...");
                     if (state == "silkflo_user")
                     {
-                        var user = (await _unitOfWork.Users.FindAsync(x => x.Email == emailClaim.Value || x.EmailNew == emailClaim.Value)).FirstOrDefault();
-                        if (user != null)
+                        _logger.LogInformation($"MS-LoginRedirectCallback | System redirection/state verified.");
+                        try
                         {
-                            await _unitOfWork.UserRoles.GetForUserAsync(user);
-                            await _unitOfWork.Roles.GetRoleForAsync(user.UserRoles);
-
-                            if (!user.IsEmailConfirmed)
+                            if (emailClaim is not null && !String.IsNullOrEmpty(emailClaim.Value))
                             {
-                                // Redirect to Sign Up Confirmation
-                                throw new Exception("Please confirm your email!");
+                                var user = await _unitOfWork.GetUserByEmail(emailClaim.Value);
+                                if (user is not null && !String.IsNullOrEmpty(user.Email))
+                                {
+                                    _logger.LogInformation($"MS-LoginRedirectCallback | Begin SignIn flow");
+                                    await _unitOfWork.UserRoles.GetForUserAsync(user);
+                                    await _unitOfWork.Roles.GetRoleForAsync(user.UserRoles);
+
+                                    var returnUrl = await SignInAsync(
+                                        user,
+                                        new Services.Models.Account.SignIn() { RememberMe = false, StaySignedIn = false },
+                                        "",
+                                        true,
+                                        true);
+                                    _logger.LogInformation($"MS-LoginRedirectCallback | SignInAsync returnUrl: {returnUrl}");
+
+                                    if (returnUrl.ToLower() == "/account/signin".ToLower())
+                                        return Redirect("/account/signin");
+
+                                    if (returnUrl.ToLower() == "/Account/SubscriptionExpired".ToLower())
+                                        return Redirect("/Account/SubscriptionExpired");
+
+                                    // Exit
+                                    if (returnUrl == null || !Url.IsLocalUrl(returnUrl))
+                                    {
+                                        Add(Services.Cookie.LoginType, true, DateTime.Now.AddDays(30), true);
+                                        return RedirectToAction("Index", "Home");
+                                    }
+
+                                    if (Url.IsLocalUrl(returnUrl))
+                                        return Redirect(returnUrl);
+
+                                    return RedirectToAction("Index", "Home");
+                                }
+                                else
+                                {
+                                    _logger.LogInformation($"MS-LoginRedirectCallback | Begin SignUp flow");
+                                    if (tenantClaim is not null && !String.IsNullOrEmpty(tenantClaim.Value))
+                                    {
+                                        var client = await _unitOfWork.GetClientByTenantId(tenantClaim.Value);
+                                        _logger.LogInformation($"MS-LoginRedirectCallback | Client: {JsonConvert.SerializeObject(client)}");
+
+                                        if (client is not null)
+                                        {
+                                            var password = $"@sq4-{Guid.NewGuid()}098a";
+                                            var tenantUserToCreate = new Models.User()
+                                            {
+                                                FirstName = firstName != null ? firstName.Value : "",
+                                                LastName = lastName != null ? lastName.Value : "",
+                                                Email = emailClaim.Value,
+                                                EmailNew = emailClaim.Value,
+                                                IsEmailConfirmed = true,
+                                                ClientId = client.Id,
+                                                Client = new Models.Business.Client(client),
+                                                AllRoles_For_UserRoles = new List<Selector>
+                                            {
+                                                new Selector() { },
+                                                new Selector() { },
+                                                new Selector() { IsSelected = true },
+                                            },
+                                                Password = password,
+                                                ConfirmPassword = password,
+                                                PasswordHash = _unitOfWork.GeneratePasswordHash(password)
+                                            };
+
+                                            // Process the forms content.
+                                            await _unitOfWork.Users.AddAsync(tenantUserToCreate.GetCore());
+                                            await _unitOfWork.UserRoles
+                                             .AddAsync(new Data.Core.Domain.UserRole
+                                             {
+                                                 User = tenantUserToCreate.GetCore(),
+                                                 RoleId = "-126"
+                                             });
+
+                                            //sign in the new user
+                                            var userToLogin = await _unitOfWork.GetUserByEmail(tenantUserToCreate.Email);
+                                            await _unitOfWork.UserRoles.GetForUserAsync(userToLogin);
+                                            await _unitOfWork.Roles.GetRoleForAsync(userToLogin.UserRoles);
+
+                                            var returnUrl = await SignInAsync(
+                                                userToLogin,
+                                                new Services.Models.Account.SignIn() { RememberMe = true, StaySignedIn = true },
+                                                "",
+                                                true,
+                                                true);
+
+                                            if (returnUrl == "/account/signin")
+                                                return Redirect("/account/signin");
+
+                                            if (returnUrl == "/Account/SubscriptionExpired")
+                                                return Redirect("/Account/SubscriptionExpired");
+
+                                            // Exit
+                                            if (returnUrl == null || !Url.IsLocalUrl(returnUrl))
+                                            {
+                                                Add(Services.Cookie.LoginType,
+                                                    true,
+                                                    DateTime.Now.AddDays(30),
+                                                    true);
+                                                return RedirectToAction("Index", "Home");
+                                            }
+
+                                            if (Url.IsLocalUrl(returnUrl))
+                                                return Redirect(returnUrl);
+
+                                            return RedirectToAction("Index", "Home");
+                                        }
+                                        else
+                                        {
+                                            _logger.LogInformation($"MS-LoginRedirectCallback | Client is missing!! for {tenantClaim.Value}");
+                                            return View("/Views/MessagePage.cshtml", new ViewModels.MessagePage
+                                            {
+                                                Title = "Access Denied",
+                                                Message = "<span class=\"silkflo-text-danger\">Login failed. You do not have access to this resource. Please create an account or use a different login method.<span>",
+                                                ShowContinueButton = false
+                                            });
+                                        }
+                                    }
+
+                                }
                             }
+                            else
+                            {
+                                _logger.LogInformation($"MS-LoginRedirectCallback | Preferred Email flow");
+                                if (preferredEmailClaim is not null && !String.IsNullOrEmpty(preferredEmailClaim.Value))
+                                {
+                                    var user = await _unitOfWork.GetUserByEmail(preferredEmailClaim.Value);
+                                    if (user is not null && !String.IsNullOrEmpty(user.Email))
+                                    {
+                                        _logger.LogInformation($"MS-LoginRedirectCallback | Begin SignIn flow");
+                                        await _unitOfWork.UserRoles.GetForUserAsync(user);
+                                        await _unitOfWork.Roles.GetRoleForAsync(user.UserRoles);
 
-                            var returnUrl = await SignInAsync(
-                                user,
-                                new Services.Models.Account.SignIn() { RememberMe = true, StaySignedIn = true },
-                                "",
-                                true,
-                                true);
+                                        var returnUrl = await SignInAsync(
+                                            user,
+                                            new Services.Models.Account.SignIn() { RememberMe = false, StaySignedIn = false },
+                                            "",
+                                            true,
+                                            true);
+                                        _logger.LogInformation($"MS-LoginRedirectCallback | SignInAsync returnUrl: {returnUrl}");
 
-                            if (returnUrl == "/account/signin")
-                                return Redirect("/account/signin");
+                                        if (returnUrl.ToLower() == "/account/signin".ToLower())
+                                            return Redirect("/account/signin");
 
-                            if (returnUrl == "/Account/SubscriptionExpired")
-                                return Redirect("/Account/SubscriptionExpired");
+                                        if (returnUrl.ToLower() == "/Account/SubscriptionExpired".ToLower())
+                                            return Redirect("/Account/SubscriptionExpired");
 
-                            // Exit
-                            if (returnUrl == null
-                            || !Url.IsLocalUrl(returnUrl))
-                                return RedirectToAction("Index", "Home");
+                                        // Exit
+                                        if (returnUrl == null || !Url.IsLocalUrl(returnUrl))
+                                        {
+                                            Add(Services.Cookie.LoginType, true, DateTime.Now.AddDays(30), true);
+                                            return RedirectToAction("Index", "Home");
+                                        }
 
-                            if (Url.IsLocalUrl(returnUrl))
-                                return Redirect(returnUrl);
+                                        if (Url.IsLocalUrl(returnUrl))
+                                            return Redirect(returnUrl);
 
-                            return RedirectToAction("Index", "Home");
+                                        return RedirectToAction("Index", "Home");
+                                    }
+                                    else
+                                    {
+                                        _logger.LogInformation($"MS-LoginRedirectCallback | Begin SignUp flow");
+                                        if (tenantClaim is not null && !String.IsNullOrEmpty(tenantClaim.Value))
+                                        {
+                                            var client = await _unitOfWork.GetClientByTenantId(tenantClaim.Value);
+                                            _logger.LogInformation($"MS-LoginRedirectCallback | Client: {JsonConvert.SerializeObject(client)}");
+
+                                            if (client is not null)
+                                            {
+                                                var password = $"@sq4-{Guid.NewGuid()}098a";
+                                                var tenantUserToCreate = new Models.User()
+                                                {
+                                                    FirstName = firstName != null ? firstName.Value : "",
+                                                    LastName = lastName != null ? lastName.Value : "",
+                                                    Email = preferredEmailClaim.Value,
+                                                    EmailNew = preferredEmailClaim.Value,
+                                                    IsEmailConfirmed = true,
+                                                    ClientId = client.Id,
+                                                    Client = new Models.Business.Client(client),
+                                                    AllRoles_For_UserRoles = new List<Selector>
+                                                    {
+                                                        new Selector() { },
+                                                        new Selector() { },
+                                                        new Selector() { IsSelected = true },
+                                                    },
+                                                    Password = password,
+                                                    ConfirmPassword = password,
+                                                    PasswordHash = _unitOfWork.GeneratePasswordHash(password)
+                                                };
+
+                                                // Process the forms content.
+                                                await _unitOfWork.Users.AddAsync(tenantUserToCreate.GetCore());
+                                                await _unitOfWork.UserRoles
+                                                 .AddAsync(new Data.Core.Domain.UserRole
+                                                 {
+                                                     User = tenantUserToCreate.GetCore(),
+                                                     RoleId = "-126"
+                                                 });
+
+                                                //sign in the new user
+                                                var userToLogin = await _unitOfWork.GetUserByEmail(tenantUserToCreate.Email);
+                                                await _unitOfWork.UserRoles.GetForUserAsync(userToLogin);
+                                                await _unitOfWork.Roles.GetRoleForAsync(userToLogin.UserRoles);
+
+                                                var returnUrl = await SignInAsync(
+                                                    userToLogin,
+                                                    new Services.Models.Account.SignIn() { RememberMe = true, StaySignedIn = true },
+                                                    "",
+                                                    true,
+                                                    true);
+
+                                                if (returnUrl == "/account/signin")
+                                                    return Redirect("/account/signin");
+
+                                                if (returnUrl == "/Account/SubscriptionExpired")
+                                                    return Redirect("/Account/SubscriptionExpired");
+
+                                                // Exit
+                                                if (returnUrl == null || !Url.IsLocalUrl(returnUrl))
+                                                {
+                                                    Add(Services.Cookie.LoginType,
+                                                        true,
+                                                        DateTime.Now.AddDays(30),
+                                                        true);
+                                                    return RedirectToAction("Index", "Home");
+                                                }
+
+                                                if (Url.IsLocalUrl(returnUrl))
+                                                    return Redirect(returnUrl);
+
+                                                return RedirectToAction("Index", "Home");
+                                            }
+                                            else
+                                            {
+                                                _logger.LogInformation($"MS-LoginRedirectCallback | Client is missing!! for {tenantClaim.Value}");
+                                                return View("/Views/MessagePage.cshtml", new ViewModels.MessagePage
+                                                {
+                                                    Title = "Access Denied",
+                                                    Message = "<span class=\"silkflo-text-danger\">Login failed. You do not have access to this resource. Please create an account or use a different login method.<span>",
+                                                    ShowContinueButton = false
+                                                });
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
+                            _logger.LogError(ex, $"MS-LoginRedirectCallback | ERROR");
                             return View("/Views/MessagePage.cshtml", new ViewModels.MessagePage
                             {
-                                Title = "Access Denied",
-                                Message = "<span class=\"silkflo-text-danger\"> Login failed. You do not have access to this resource. Please create an account or use a different login method.<span>",
+                                Title = "Customer Support",
+                                Message = "<span class=\"silkflo-text-danger\">Login failed. Try login again or contact customer support for resolution.<span>",
                                 ShowContinueButton = false
                             });
                         }
@@ -840,6 +1089,7 @@ public partial class AccountController : AbstractAPI
         }
         catch (MsalException ex)
         {
+            _logger.LogError(ex, $"MS-LoginRedirectCallback | Msal ERROR");
             return Redirect("/Account/SignIn");
         }
     }
@@ -870,7 +1120,18 @@ public partial class AccountController : AbstractAPI
 
     public new IActionResult SignOut()
     {
+        var loginType = Request.Cookies[Services.Cookie.LoginType.ToString()];
         SignOutProcess();
+
+        if (loginType != null)
+        {
+            if (loginType.Equals("true") || loginType.Equals("True"))
+            {
+                // Initiate Azure AD SSO logout
+                string logoutUrl = $"https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri={HttpUtility.UrlEncode("https://app.silkflo.com/Account/SignIn")}";
+                return Redirect(logoutUrl);
+            }
+        }
 
         return Redirect("/");
     }
@@ -1346,5 +1607,302 @@ public partial class AccountController : AbstractAPI
 	{
 		return View("AzureMarketplaceActivatedLoading");
 	}
-	#endregion
+    #endregion
+
+    #region private-funcs
+    private async Task ProcessManyToMany_Achievements_For_UserAchievements(Models.User model)
+    {
+        try
+        {
+            // Get the selected achievements for Achievements
+            var selectedAchievements_For_UserAchievements = model.AllAchievements_For_UserAchievements.Where(x => x.IsSelected);
+
+            // Un-assign achievements_For_UserAchievements from user
+            await _unitOfWork.UserAchievements.GetForUserAsync(model.GetCore());
+
+
+            var userAchievementsLength = model.GetCore().UserAchievements.Count();
+            for (var i = userAchievementsLength - 1; i >= 0; i--)
+            {
+                var userAchievement = model.GetCore().UserAchievements[i];
+
+                await _unitOfWork.UserAchievements
+                                 .RemoveAsync(userAchievement);
+
+                model.GetCore()
+                     .UserAchievements
+                     .Remove(userAchievement);
+            }
+
+            // Assign achievements_For_UserAchievements to user
+            var achievements = await _unitOfWork.SharedAchievements.GetAllAsync();
+            int index = 0;
+            foreach (var achievement in achievements)
+            {
+                var userAchievement = model.AllAchievements_For_UserAchievements[index];
+                if (userAchievement.IsSelected)
+                {
+                    await _unitOfWork.UserAchievements
+                                     .AddAsync(new Data.Core.Domain.UserAchievement
+                                     {
+                                         User = model.GetCore(),
+                                         AchievementId = achievement.Id
+                                     });
+                }
+
+                index++;
+            }
+        }
+        catch
+        {
+            throw;
+        }
+    }
+
+    private async Task ProcessManyToMany_Badges_For_UserBadges(Models.User model)
+    {
+        try
+        {
+            // Get the selected badges for Badges
+            var selectedBadges_For_UserBadges = model.AllBadges_For_UserBadges.Where(x => x.IsSelected);
+
+            // Un-assign badges_For_UserBadges from user
+            await _unitOfWork.UserBadges.GetForUserAsync(model.GetCore());
+
+
+            var userBadgesLength = model.GetCore().UserBadges.Count();
+            for (var i = userBadgesLength - 1; i >= 0; i--)
+            {
+                var userBadge = model.GetCore().UserBadges[i];
+
+                await _unitOfWork.UserBadges
+                                 .RemoveAsync(userBadge);
+
+                model.GetCore()
+                     .UserBadges
+                     .Remove(userBadge);
+            }
+
+            // Assign badges_For_UserBadges to user
+            var badges = await _unitOfWork.SharedBadges.GetAllAsync();
+            int index = 0;
+            foreach (var badge in badges)
+            {
+                var userBadge = model.AllBadges_For_UserBadges[index];
+                if (userBadge.IsSelected)
+                {
+                    await _unitOfWork.UserBadges
+                                     .AddAsync(new Data.Core.Domain.UserBadge
+                                     {
+                                         User = model.GetCore(),
+                                         BadgeId = badge.Id
+                                     });
+                }
+
+                index++;
+            }
+        }
+        catch
+        {
+            throw;
+        }
+    }
+
+    private async Task ProcessManyToMany_Roles_For_UserRoles(Models.User model)
+    {
+        try
+        {
+            // Get the selected roles for Roles
+            var selectedRoles_For_UserRoles = model.AllRoles_For_UserRoles.Where(x => x.IsSelected);
+
+            // Un-assign roles_For_UserRoles from user
+            await _unitOfWork.UserRoles.GetForUserAsync(model.GetCore());
+
+
+            var userRolesLength = model.GetCore().UserRoles.Count();
+            for (var i = userRolesLength - 1; i >= 0; i--)
+            {
+                var userRole = model.GetCore().UserRoles[i];
+
+                await _unitOfWork.UserRoles
+                                 .RemoveAsync(userRole);
+
+                model.GetCore()
+                     .UserRoles
+                     .Remove(userRole);
+            }
+
+            // Assign roles_For_UserRoles to user
+            var roles = await _unitOfWork.Roles.GetAllAsync();
+            int index = 0;
+            foreach (var role in roles)
+            {
+                var userRole = model.AllRoles_For_UserRoles[index];
+                if (userRole.IsSelected)
+                {
+                    await _unitOfWork.UserRoles
+                                     .AddAsync(new Data.Core.Domain.UserRole
+                                     {
+                                         User = model.GetCore(),
+                                         RoleId = role.Id
+                                     });
+                }
+
+                index++;
+            }
+        }
+        catch
+        {
+            throw;
+        }
+    }
+
+    private async Task ProcessManyToMany_Clients_For_ManageTenants(Models.User model)
+    {
+        try
+        {
+            // Get the selected clients for Roles
+            var selectedClients_For_ManageTenants = model.AllClients_For_ManageTenants.Where(x => x.IsSelected);
+
+            // Un-assign clients_For_ManageTenants from user
+            await _unitOfWork.AgencyManageTenants.GetForUserAsync(model.GetCore());
+
+
+            var manageTenantsLength = model.GetCore().ManageTenants.Count();
+            for (var i = manageTenantsLength - 1; i >= 0; i--)
+            {
+                var manageTenant = model.GetCore().ManageTenants[i];
+
+                await _unitOfWork.AgencyManageTenants
+                                 .RemoveAsync(manageTenant);
+
+                model.GetCore()
+                     .ManageTenants
+                     .Remove(manageTenant);
+            }
+
+            // Assign clients_For_ManageTenants to user
+            var clients = await _unitOfWork.BusinessClients.GetAllAsync();
+            int index = 0;
+            foreach (var client in clients)
+            {
+                var manageTenant = model.AllClients_For_ManageTenants[index];
+                if (manageTenant.IsSelected)
+                {
+                    await _unitOfWork.AgencyManageTenants
+                                     .AddAsync(new Data.Core.Domain.Agency.ManageTenant
+                                     {
+                                         User = model.GetCore(),
+                                         TenantId = client.Id
+                                     });
+                }
+
+                index++;
+            }
+        }
+        catch
+        {
+            throw;
+        }
+    }
+
+    private async Task ProcessManyToMany_Ideas_For_Follows(Models.User model)
+    {
+        try
+        {
+            // Get the selected ideas for Followed Ideas
+            var selectedIdeas_For_Follows = model.AllIdeas_For_Follows.Where(x => x.IsSelected);
+
+            // Un-assign ideas_For_Follows from user
+            await _unitOfWork.BusinessFollows.GetForUserAsync(model.GetCore());
+
+
+            var followsLength = model.GetCore().Follows.Count();
+            for (var i = followsLength - 1; i >= 0; i--)
+            {
+                var follow = model.GetCore().Follows[i];
+
+                await _unitOfWork.BusinessFollows
+                                 .RemoveAsync(follow);
+
+                model.GetCore()
+                     .Follows
+                     .Remove(follow);
+            }
+
+            // Assign ideas_For_Follows to user
+            var ideas = await _unitOfWork.BusinessIdeas.GetAllAsync();
+            int index = 0;
+            foreach (var idea in ideas)
+            {
+                var follow = model.AllIdeas_For_Follows[index];
+                if (follow.IsSelected)
+                {
+                    await _unitOfWork.BusinessFollows
+                                     .AddAsync(new Data.Core.Domain.Business.Follow
+                                     {
+                                         User = model.GetCore(),
+                                         IdeaId = idea.Id
+                                     });
+                }
+
+                index++;
+            }
+        }
+        catch
+        {
+            throw;
+        }
+    }
+
+    private async Task ProcessManyToMany_Ideas_For_Votes(Models.User model)
+    {
+        try
+        {
+            // Get the selected ideas for Ideas Voted Fors
+            var selectedIdeas_For_Votes = model.AllIdeas_For_Votes.Where(x => x.IsSelected);
+
+            // Un-assign ideas_For_Votes from user
+            await _unitOfWork.BusinessVotes.GetForUserAsync(model.GetCore());
+
+
+            var votesLength = model.GetCore().Votes.Count();
+            for (var i = votesLength - 1; i >= 0; i--)
+            {
+                var vote = model.GetCore().Votes[i];
+
+                await _unitOfWork.BusinessVotes
+                                 .RemoveAsync(vote);
+
+                model.GetCore()
+                     .Votes
+                     .Remove(vote);
+            }
+
+            // Assign ideas_For_Votes to user
+            var ideas = await _unitOfWork.BusinessIdeas.GetAllAsync();
+            int index = 0;
+            foreach (var idea in ideas)
+            {
+                var vote = model.AllIdeas_For_Votes[index];
+                if (vote.IsSelected)
+                {
+                    await _unitOfWork.BusinessVotes
+                                     .AddAsync(new Data.Core.Domain.Business.Vote
+                                     {
+                                         User = model.GetCore(),
+                                         IdeaId = idea.Id
+                                     });
+                }
+
+                index++;
+            }
+        }
+        catch
+        {
+            throw;
+        }
+    }
+    #endregion
+
 }

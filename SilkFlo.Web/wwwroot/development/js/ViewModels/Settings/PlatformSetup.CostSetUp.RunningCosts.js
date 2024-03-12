@@ -1,4 +1,6 @@
-﻿if (!SilkFlo.ViewModels)
+﻿/* eslint-disable no-restricted-globals */
+/* eslint-disable no-undef */
+if (!SilkFlo.ViewModels)
     SilkFlo.ViewModels = {};
 
 if (!SilkFlo.ViewModels.Settings)
@@ -508,11 +510,34 @@ SilkFlo.ViewModels.Settings.PlatformSetup.CostSetup.RunningCosts = {
             this.SetMessage('Please provide a licence type', 'text-warning');
             return;
         }
+        
+        //Duplicate Clause
+        const tableRows = document.querySelectorAll('table[name="Business.RunningCosts"] tbody tr:not(:first-child)');
+        const duplicateExists = Array.from(tableRows).some(row => {
+            const venderId = row.querySelector('select[name="Business.RunningCost.VenderId"]').value.toLowerCase();
+            const automationTypeId = row.querySelector('select[name="Business.RunningCost.AutomationTypeId"]').value.toLowerCase();
+            const licenceType = row.querySelector('div[name="Business.RunningCost.LicenceType"]').textContent.trim().toLowerCase();
 
-        if (this.TableRows.some(row => row.VenderId.toLowerCase() === model.VenderId.toLowerCase() && row.AutomationTypeId.toLowerCase() === model.AutomationTypeId.toLowerCase() && row.LicenceType.toLowerCase() === model.LicenceType.toLowerCase())) {
-            this.SetMessage('A record already exist. Please choose a unique licence Type for same Vendor and Automation', 'text-warning');
+            return venderId === model.VenderId.toLowerCase() && automationTypeId === model.AutomationTypeId.toLowerCase() && licenceType === model.LicenceType.toLowerCase();
+        });
+
+        if (duplicateExists) {
+
+            bootbox.dialog({
+                title: `Duplicate`,
+                message: `It looks like this running cost is a duplicate. Please adjust your entry to ensure it's unique.`,
+                onEscape: true,
+                backdrop: true,
+                buttons: {
+                    cancel: {
+                        label: 'Ok',
+                        className: 'btn-danger',
+                    }
+                }
+            });
             return;
         }
+
 
         const url = '/api/Business/runningCost/Post';
         SilkFlo.Models.Abstract.Save(
@@ -523,9 +548,6 @@ SilkFlo.ViewModels.Settings.PlatformSetup.CostSetup.RunningCosts = {
             url,
             'POST');
     },
-
-
-
 
 
     Save_CallBack: function (

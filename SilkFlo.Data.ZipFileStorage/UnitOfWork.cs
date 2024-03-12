@@ -76,19 +76,19 @@ namespace SilkFlo.Data.Persistence
     [IgnoreDataMember]
     [XmlIgnore]
     public static bool IsOpening { get; private set; }
-        public IDatabase _database { get; private set; }
+        //public IDatabase _database { get; private set; }
 
         public UnitOfWork()
         {
-            _database = DatabaseConfiguration.Build()
-                 .UsingConnectionString("Server=tcp:silkflo-dev.database.windows.net,1433;Initial Catalog=silkflo-prod;Persist Security Info=False;User ID=sfadmin;Password=Sf-admin;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;")
-                 .UsingProvider<SqlServerDatabaseProvider>()
-                 .UsingDefaultMapper<ConventionMapper>(m =>
-                 {
-                     m.InflectTableName = (inflector, s) => inflector.Pluralise(s);
-                     //m.InflectColumnName = (inflector, s) => inflector.Underscore(s);
-                 })
-             .Create();
+            //_database = DatabaseConfiguration.Build()
+            //     .UsingConnectionString("Server=tcp:silkflo-dev.database.windows.net,1433;Initial Catalog=silkflo-prod;Persist Security Info=False;User ID=sfadmin;Password=Sf-admin;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;")
+            //     .UsingProvider<SqlServerDatabaseProvider>()
+            //     .UsingDefaultMapper<ConventionMapper>(m =>
+            //     {
+            //         m.InflectTableName = (inflector, s) => inflector.Pluralise(s);
+            //         //m.InflectColumnName = (inflector, s) => inflector.Underscore(s);
+            //     })
+            // .Create();
 
             this.Analytics = (IAnalyticRepository)new AnalyticRepository(this);
             this.Logs = (ILogRepository)new LogRepository(this);
@@ -21976,11 +21976,11 @@ namespace SilkFlo.Data.Persistence
     public static string IsUnique(RunningCost core)
     {
       string str = "";
-      if (UnitOfWork._dataSet.BusinessRunningCosts.ToList<RunningCost>().FirstOrDefault<RunningCost>((Func<RunningCost, bool>) (x => x.Id != (core.Id ?? "") && x.AutomationTypeId == core.AutomationTypeId && x.ClientId == core.ClientId && x.VenderId == core.VenderId)) != null)
+      if (UnitOfWork._dataSet.BusinessRunningCosts.ToList<RunningCost>().FirstOrDefault<RunningCost>((Func<RunningCost, bool>) (x => x.Id != (core.Id ?? "") && x.AutomationTypeId == core.AutomationTypeId && x.LicenceType == core.LicenceType && x.VenderId == core.VenderId)) != null)
       {
         if (!string.IsNullOrWhiteSpace(str))
           str += " ";
-        str += "A record already exists with this automation Type and client and software Vender.";
+        str += "It looks like this running cost is a duplicate.\r\nPlease adjust your entry to ensure it's unique.";
       }
       return str;
     }
@@ -48355,8 +48355,18 @@ namespace SilkFlo.Data.Persistence
             return dataStoreResult1;
         }
 
+        public async Task<Client> GetClientByTenantId(string tenantId)
+        {
+            return UnitOfWork._dataSet.BusinessClients.SingleOrDefault<Client>((Func<Client, bool>)(x => x.TenantId == tenantId));
+        }
+        
+        public async Task<User> GetUserByEmail(string email)
+        {
+            return await UnitOfWork._dataSet.Users.GetUserByEmailAsync(email);
+        }
 
-        public async Task<List<Idea>> ImportBulkIdeas(List<Idea> ideas)
+
+        public async Task<(List<Idea>, int)> ImportBulkIdeas(List<Idea> ideas)
         {
             try
             {
@@ -48364,8 +48374,8 @@ namespace SilkFlo.Data.Persistence
                 {
                     x.Id = Guid.NewGuid().ToString();
                 });
-                await UnitOfWork._dataSet.BusinessIdeas.ImportBulk(ideas);
-                return ideas;
+                var count = await UnitOfWork._dataSet.BusinessIdeas.ImportBulk(ideas);
+                return (ideas, count);
             }
             catch (Exception ex)
             {
@@ -48373,9 +48383,9 @@ namespace SilkFlo.Data.Persistence
             }
         }
 
-        public bool CheckIdeasWithExistingName(List<string> names)
+        public bool CheckIdeasWithExistingName(List<string> names, string clientId)
         {
-            return UnitOfWork._dataSet.BusinessIdeas.CheckIdeasWithExistingName(names);
+            return UnitOfWork._dataSet.BusinessIdeas.CheckIdeasWithExistingName(names, clientId);
         }
 
     public void Dispose()

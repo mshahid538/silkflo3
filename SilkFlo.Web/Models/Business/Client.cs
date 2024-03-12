@@ -517,6 +517,36 @@ namespace SilkFlo.Web.Models.Business
         public bool Website_IsInValid { get; set; }
         #endregion
 
+        #region TenantId
+        [DisplayName("Azure Tenant Id")]
+        public string TenantId
+        {
+            get => _core.TenantId;
+            set
+            {
+                if (_core.TenantId == value)
+                    return;
+
+                _core.TenantId = value;
+            }
+        }
+        #endregion
+
+        #region OtherDomains
+        [DisplayName("Domains")]
+        public string OtherDomain
+        {
+            get => _core.OtherDomain;
+            set
+            {
+                if (_core.OtherDomain == value)
+                    return;
+
+                _core.OtherDomain = value;
+            }
+        }
+        #endregion
+
         [DisplayName("Account Owner")]
         public string AccountOwnerId
         {

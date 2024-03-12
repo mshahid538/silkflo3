@@ -11,7 +11,7 @@ namespace SilkFlo.Extensions
         public ListExtended()
         {
             _db = DatabaseConfiguration.Build()
-                 .UsingConnectionString("Server=tcp:silkflo-dev.database.windows.net,1433;Initial Catalog=silkflo-prod;Persist Security Info=False;User ID=sfadmin;Password=Sf-admin;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;")
+                 .UsingConnectionString("Server=tcp:silkflo-dev.database.windows.net,1433;Initial Catalog=silkflo-test;Persist Security Info=False;User ID=sfadmin;Password=Sf-admin;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;")
                  .UsingProvider<SqlServerDatabaseProvider>()
                  .UsingDefaultMapper<ConventionMapper>(m =>
                  {

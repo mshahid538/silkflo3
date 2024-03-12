@@ -1,3 +1,5 @@
+@model SilkFlo.Web.ViewModels.Settings.APIAccess
+
 <style>
 	.custom-switch {
 		position: relative;
@@ -53,11 +55,12 @@
 			border-radius: 50%;
 		}
 
-		#myTable {
-			border-collapse: collapse;
-			width: 100%;
-			background-color: white;
-		}
+	#myTable {
+		border-collapse: collapse;
+		width: 100%;
+		background-color: white;
+	}
+
 		#myTable th,
 		#myTable tr,
 		#myTable td {
@@ -66,6 +69,7 @@
 			background-color: white;
 			border-collapse: collapse;
 		}
+
 		#myTable th {
 			background-color: white;
 			border-collapse: collapse;
@@ -85,10 +89,15 @@
 		<h3 style="font-size: 16px; color: #363853; font-family: 'Poppins', sans-serif; font-weight: bold;">
 			Build & work more efficiently
 		</h3>
-		<h3 style=" font-style: normal;font-weight: 500;font-size: 16px;line-height: 24px;color: #353535;">Use our API to manipulate your tenant, or to integrate SilkFlo's data across a range of different technologies including RPA, IDP, chatbots, low-code and more... no matter which vendors you use.</h3>
+		<p style=" font-style: normal;font-size: 16px;line-height: 24px;color: #353535;">Use our API to manipulate your tenant, or to integrate SilkFlo's data across a range of different technologies including RPA, IDP, chatbots, low-code and more... no matter which vendors you use.</p>
 
 		<p style="font-size: 16px;  font-family: 'Poppins', sans-serif; font-weight: 600;">
-			<a href="#" style="color: #FF8A00;"> View Documentation <i class="bi bi-box-arrow-up-right bold" color="#FF8A00"></i></a>
+			<a href="https://silkflo.com/docs/" target="_blank" style="color: #FF8A00;"> View Documentation 
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-up-right" style="margin-bottom:5px" color="#FF8A00" viewBox="0 0 16 16">
+					<path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5" />
+					<path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z" />
+				</svg>	
+			</a>
 		</p>
 	</div>
 	<div style="background-color: white; padding: 20px; margin-top: 20px; width: 1030px; height: auto; display: flex; flex-direction: column; align-items: flex-start;">
@@ -99,13 +108,13 @@
 		</div>
 		<div style="display: flex; justify-content: space-between; width: 100%;">
 			<div style="flex: 1;">
-				<h3 style="font-size: 16px; color: #353535; margin-bottom: 10px;">
+				<p style="font-size: 16px; color: #353535; margin-bottom: 10px;">
 					Generate an Access Key which is used to authenticate to the SilkFlo API
-				</h3>
+				</p>
 			</div>
 			<div style="margin-right: 85px;">
-				<button style="width: 177px;height: 40px;background-color: white; border: 2px solid #FF8A00; color: #FF8A00;cursor: pointer;font-size: medium;font-weight: 500;" onclick="ShowAddTokenModal()">
-					Get API Access Key
+				<button style="width: 177px;height: 40px;background-color: white; border: 2px solid #FF8A00; color: #FF8A00;cursor: pointer;font-size: medium;" onclick="ShowAddTokenModal()">
+					<b>Get API Access Key</b>
 				</button>
 			</div>
 		</div>
@@ -120,45 +129,39 @@
 					<div class="table-responsive">
 						<div class="dataTables_wrapper no-footer" id="myTable_wrapper">
 
-	<table class="table dataTable table-bordered no-footer" style="width:85%" id="myTable" role="grid" aria-describedby="myTable_info">
-		<thead>
-			<tr role="row">
-				<th></th>
-				<th>Name</th>
-				<th>Token</th>
-				<th>Description</th>
-				<th>Expires</th>
-				<th>Active</th>
-			</tr>
-		</thead>
-		<tbody id="table-body">
-			<tr>
-				<td>1.</td>
-				<td>MITUser1</td>
-				<td>abcd***23ff******adctt34234</td>
-				<td>This key is generated for MIT user 1</td>
-				<td>Mar 29 2024</td>
-				<td>Yes</td>
-			</tr>
-			<tr>
-				<td>2.</td>
-				<td>BankerKeyAccess</td>
-				<td>ccfkkl***dr44******53ddffd</td>
-				<td>Key generated for Banker user 1</td>
-				<td>Apr 15 2024</td>
-				<td>Yes</td>
-			</tr>
-			<tr>
-				<td>3.</td>
-				<td>SilkFloUserKey</td>
-				<td>er33***fadr******er34dsf</td>
-				<td>SilkFlo user testing key for API Access</td>
-				<td>Dec 31 2024</td>
-				<td>No</td>
-			</tr>
-		</tbody>
-	</table>
-</div>
+							<table class="table dataTable table-bordered no-footer" style="width:86%" id="myTable" role="grid" aria-describedby="myTable_info">
+								<thead>
+									<tr role="row">
+										<th>Name</th>
+										<th>Token</th>
+										<th>Description</th>
+										<th>Expires</th>
+										<th>Active</th>
+									</tr>
+								</thead>
+								<tbody id="accessKeytbl">
+									@if (Model != null && Model.Details != null)
+									{
+										foreach (var x in Model.Details)
+										{
+											<tr>
+												<td>@x.Name</td>
+												<td>@x.SessionKey</td>
+												<td>@x.Description</td>
+												<td>@x.ExpirationDate</td>
+												<td>@(x.IsActive? "Yes": "No")</td>
+											</tr>
+											
+										}
+									}
+									<div id="divLoading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; background-color: #666666; z-index: 30001; opacity: .8; filter: alpha(opacity=70); display:none">
+										<p style="position: absolute; top: 30%; left: 45%; color: White;">
+											Loading, please wait...
+										</p>
+									</div>
+								</tbody>
+							</table>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -167,55 +170,85 @@
 	</div>
 </div>
 
-<div class="modal fade" id="ShowAddTokenModal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
-	<div class="modal-dialog modal-content" style="border-radius: 5px; padding: 25px; max-width: 600px; height: 525px; text-align: left;">
-		<h2 class="text-center mx-auto" style="margin-bottom: 20px;">Add Token</h2>
-
-		<form>
-			<div class="form-group">
-				<label for="tokenName">Name<span style="color:red">*</span></label>
-				<input type="text" max-length="50" class="form-control" id="tokenName" maxlength="50">
+<form>
+	<div class="modal fade" id="ShowAddTokenModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title ms-3" id="staticBackdropLabel">Generate API Access Key</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="form-group mb-3">
+						<label for="tokenName" class="form-label"><b>Name</b> <small>(Key Name)</small><span style="color:red">*</span></label>
+						<input type="text" max-length="50" class="form-control" id="tokenName" maxlength="50">
+					</div>
+					<div class="form-group mb-3">
+						<label for="tokenDescription"><b>Description</b><span style="color:red">*</span></label>
+						<textarea max-length="100" class="form-control" id="tokenDescription" maxlength="100" rows="2" style="resize:none"></textarea>
+					</div>
+					<div class="form-group mb-3">
+						<label for="tokenExpires"><b>Valid Till</b> <small>(Key expiration time)</small><span style="color:red">*</span></label>
+						<div class="input-group date" id="expiresDatePicker" data-target-input="nearest" style="width:300px; position: relative;">
+							<input class="form-control bg-white datepicker" data-date-format="m/d/Y G:iK" data-enable-time="true" style="padding-right: 30px;" />
+							<div style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%);">
+								<i class="bi bi-calendar blue"></i>
+							</div>
+						</div>
+					</div>
+					<div>
+						<div class="form-check form-switch">
+							<label class="form-check-label" for="isActive"><b>Active</b> <small>(Enable/Disable the key)</small></label>
+							<input class="form-check-input" type="checkbox" role="switch" id="isActive">
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-warning" data-bs-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-warning" onclick="SaveToken()">Save</button>
+				</div>
 			</div>
+		</div>
+	</div>
+</form>
 
-			<div class="form-group">
-				<label for="tokenDescription">Description<span style="color:red">*</span></label>
-				<textarea max-length="100" class="form-control" id="tokenDescription" maxlength="100"></textarea>
+
+@* <div class="modal fade" id="apiAccessKeyGen" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">API Access Key</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
+			<div class="modal-body">
+				<p id="valueToShow"></p>
+				<button type="button" class="btn btn-secondary" id="copyBtn">Copy</button>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div> *@
 
-			<div class="form-group">
-					<label for="tokenExpires">Expires<span style="color:red">*</span></label>
-					<div class="input-group date" id="expiresDatePicker" data-target-input="nearest" style="width:300px; position: relative;">
-	<input class="form-control bg-white datepicker" data-date-format="m/d/Y G:iK" data-enable-time="true" style="padding-right: 30px;"/>
-	<div style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%);">
-		<i class="bi bi-calendar blue"></i>
+<div class="modal fade" id="apiAccessKeyGen" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLongTitle">Access Key</h5>
+			</div>
+			<div class="modal-body">
+				<div class="input-group mb-3">
+					<input id="valueToShow" type="text" class="form-control" aria-describedby="basic-addon2" readonly>
+				</div>
+				<br /> <br /> <br />
+				<div class="alert alert-dark" role="alert">
+					<b>Heads up!</b> This API Access Key is only shown once. Copy it and keep it safe in a trusted place.
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="window.location.reload()">Close</button>
+			</div>
+		</div>
 	</div>
 </div>
-
-			</div>
-
-
-			<div class="form-group" style="display: flex; align-items: center;">
-
-				<label class="custom-switch" style="margin-right: 10px;">
-					<input type="checkbox" id="isActive" checked>
-					<span class="custom-slider round"></span>
-				</label>
-				<label for="isActive">Active</label>
-			</div>
-			<div style="margin-top: 20px; display: flex; justify-content: center;">
-				<button class="btn" style="width: 120px; height: 40px; background-color: white; border: 1px solid #FF8A00; color: #FF8A00; cursor: pointer; font-size: medium; font-weight: 500;margin-right: 10px;" onclick="HideAddTokenModal()">
-					Cancel
-				</button>
-
-				<button type="button" class="btn btn-warning" style="width: 120px; height: 40px;" onclick="SaveToken()">
-					Save
-				</button>
-			</div>
-
-		</form>
-	</div>
-</div>
-
-
-
-

@@ -557,6 +557,8 @@ namespace SilkFlo.Data.Core.Domain.Business
         this.IsSaved = false;
       }
     }
+        public string TenantId { get; set; }
+        public string OtherDomain { get; set; }
 
         [Ignore]
         [IgnoreDataMember]

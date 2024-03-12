@@ -9,6 +9,7 @@
         NoLogging,
         ClientId,
         IsPractice,
-        SilkFloData
+        SilkFloData,
+        LoginType
     }
 }

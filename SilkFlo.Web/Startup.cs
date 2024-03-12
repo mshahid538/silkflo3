@@ -19,37 +19,69 @@ using SilkFlo.Security;
 using SilkFlo.Data.Core;
 using SilkFlo.Data.Persistence;
 //using SilkFlo.ThirdPartyServices;
+using NLog;
+using NLog.Web;
+using Silkflo.Persistence;
+using System.Reflection;
+using Silkflo.API.Services.ClientApplicationInterfaceSession.Command;
+using Silkflo.API;
+using Microsoft.OpenApi.Models;
+using System.IO;
+using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace SilkFlo.Web
 {
     public class Startup
     {
-#if RELEASE
+        #if RELEASE
         internal static string PageNotFound = "";
-#endif
+        #endif
+        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
-
         public IConfiguration Configuration { get; }
 
-
-        /// <summary>
-        /// This method gets called by the runtime.
-        /// Use this method to add services to the container.
-        /// For more information on how to configure your application,
-        /// visit https://go.microsoft.com/fwlink/?LinkID=398940
-        /// </summary>
-        /// <param name="services"></param>
-        public void ConfigureServices(IServiceCollection services)
+		/// <summary>
+		/// This method gets called by the runtime.
+		/// Use this method to add services to the container.
+		/// For more information on how to configure your application,
+		/// visit https://go.microsoft.com/fwlink/?LinkID=398940
+		/// </summary>
+		/// <param name="services"></param>
+		public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews().AddNewtonsoftJson();
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>(); // This is need for SilkFlo.Services.Authorization.AuthorizeTagHelper
-                                                                                // services.AddThirdPartyServices(Configuration);
+            services.AddControllers();
 
-            //services.AddScoped<Data.Core.Persistence.ApplicationDbContext>();
+			//services.AddSwaggerGen(c =>
+			//{
+			//    c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+			//    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+
+			//    // Set the comments path for the Swagger JSON and UI.
+			//    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+			//    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+			//    c.IncludeXmlComments(xmlPath);
+			//});
+
+			services.AddControllersWithViews().AddNewtonsoftJson();
+
+            //services.AddCors(options =>
+            //{
+            //    options.AddPolicy("AllowSwagger",
+            //        builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+            //});
+
+            // This is need for SilkFlo.Services.Authorization.AuthorizeTagHelper
+            // services.AddThirdPartyServices(Configuration);
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>(); 
+            
+            //Add Silkflo.Persistence services
+            services.AddPersistentServices();
+            
             services.AddTransient<IAuthorizationHandler, Services.Authorization.DifferentUserHandler>();
             services.AddTransient<IAuthorizationHandler, Services.Authorization.AnyRoleHandler>();
             services.AddTransient<SilkFlo.Security.API.ReCaptcha.Interfaces.ISignUpService, SilkFlo.Security.API.ReCaptcha.SignUpService>();
@@ -68,22 +100,15 @@ namespace SilkFlo.Web
             });
 
 
-            // Load test data here.
             services.AddScoped<Data.Core.IUnitOfWork, Data.Persistence.UnitOfWork>();
-            // Scoped in this case means scoped to a HTTP request,
-            // which also means it is a singleton while the current request is running.
-
+            
             services
                 .AddMvc(setupAction =>
-                        {
-                            setupAction.EnableEndpointRouting = false;
-                        })
-                .AddNewtonsoftJson(options =>
-                                   options.SerializerSettings.ContractResolver =
-                                      new CamelCasePropertyNamesContractResolver())
+                {
+                    setupAction.EnableEndpointRouting = false;
+                })
+                .AddNewtonsoftJson(options =>options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver())
                 .AddRazorRuntimeCompilation();
-
-
 
             #region Create Policies
             services.AddAuthorization(options =>
@@ -276,26 +301,19 @@ namespace SilkFlo.Web
                 options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
-                .AddCookie(options =>
-                {
-                    options.LoginPath = "/account/signin";
-                    options.LogoutPath = "/account/signout";
-                });
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/account/signin";
+                options.LogoutPath = "/account/signout";
+            });
 
-            //services.AddAuthentication(options =>
-            //{
-            //options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            //options.DefaultSignInScheme = "AzureAD";
-            //options.DefaultScheme = "Cookies";
-            //options.SignInScheme = "AzureAD";
-            //});
+            // Add Silkflo.API services
+            services.AddAPIServices();
 
-            //services.AddMicrosoftIdentityWebAppAuthentication(Configuration);
             services.Configure<FormOptions>(options =>
             {
                 options.ValueCountLimit = 2048;
             });
-
         }
 
 
@@ -304,19 +322,35 @@ namespace SilkFlo.Web
         /// Use this method to configure the HTTP request pipeline.
         /// </summary>
         /// <param name="app"></param>
-        public void Configure(IApplicationBuilder app, Data.Core.IUnitOfWork serviceProvider)
+        public void Configure(IApplicationBuilder app, Data.Core.IUnitOfWork serviceProvider, ILogger<Startup> logger)
         {
-#if DEBUG
+            #if DEBUG
             app.UseDeveloperExceptionPage();
-#else
+            #else
             app.UseExceptionHandler("/Home/Error");
             app.UseHsts();
-#endif
+            #endif
+
+            LogManager.LoadConfiguration("nlog.config");
 
             app.UseHttpsRedirection();
+
+            //app.UseSwagger();
+
+            //app.UseSwaggerUI(c =>
+            //{
+            //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            //    c.RoutePrefix = string.Empty;
+            //});
+
+            //app.UseCors("AllowSwagger");
+
+            app.UseRouting();
+
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseCookiePolicy();
+
 
             app.UseAuthentication();
 
@@ -335,6 +369,12 @@ namespace SilkFlo.Web
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
+            //app.UseEndpoints(endpoints =>
+            //{
+            //    endpoints.MapControllerRoute(
+            //        name: "default",
+            //        pattern: "{controller}/{action}/{id?}");
+            //});
 
 #if RELEASE
             ////app.Run(async (context) =>
@@ -352,11 +392,14 @@ namespace SilkFlo.Web
             ////    await context.Response.WriteAsync(PageNotFound);
             ////});
 #endif
-            Data.Persistence.UnitOfWork.GetDataSetAsync().GetAwaiter().GetResult();
-            // InsertData(app, serviceProvider).GetAwaiter();
-            
 
-            SetupEmail(app).GetAwaiter().GetResult();
+            Data.Persistence.UnitOfWork.GetDataSetAsync().GetAwaiter().GetResult();
+
+            var key = Configuration["BREVO_API_KEY"];
+            logger.LogInformation($"BREVO-API-KEY: {key}");
+
+			// InsertData(app, serviceProvider).GetAwaiter();
+			SetupEmail(app, key).GetAwaiter().GetResult();
             SilkFlo.Web.Services2.Models.PaymentManager.SetUpWebHooks(); // Payment.Manager.SetUpWebHooks();
         }
 
@@ -688,26 +731,27 @@ namespace SilkFlo.Web
         }
 
 
-        private static async Task SetupEmail(IApplicationBuilder app)
+        private static async Task SetupEmail(IApplicationBuilder app, string key)
         {
             var domain = GetDomain(app);
 
             var isProduction = true;
             var testEmail = "";
-            //if (Security.Settings.GetEnvironment() != Security.Environment.Production)
-            //{
-            //    isProduction = false;
+			//if (Security.Settings.GetEnvironment() != Security.Environment.Production)
+			//{
+			//    isProduction = false;
 
-            //    using var unitOfWork = new Data.Persistence.UnitOfWork();
+			//    using var unitOfWork = new Data.Persistence.UnitOfWork();
 
-            //    var id = Data.Core.Enumerators.Setting.TestEmailAccount.ToString();
-            //    var setting = await unitOfWork.ApplicationSettings.GetAsync(id);
+			//    var id = Data.Core.Enumerators.Setting.TestEmailAccount.ToString();
+			//    var setting = await unitOfWork.ApplicationSettings.GetAsync(id);
 
-            //    testEmail = setting == null ? "" : setting.Value;
-            //}
+			//    testEmail = setting == null ? "" : setting.Value;
+			//}
 
-            Email.Service.Setup(
-                true, //isProduction, //remove it and send true directly
+			Email.Service.Setup(
+				key,
+				true, //isProduction, //remove it and send true directly
                 testEmail,
                 domain);
         }

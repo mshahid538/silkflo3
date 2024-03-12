@@ -2921,7 +2921,7 @@ namespace SilkFlo.Web.Controllers.Business
             catch (Exception ex)
             {
                 _unitOfWork.Log(ex);
-                feedback.DangerMessage("Error saving ideas");
+                feedback.DangerMessage(ex.Message); // "Error saving ideas");
                 return BadRequest(feedback);
             }
         }

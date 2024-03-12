@@ -50,13 +50,13 @@ namespace SilkFlo.Web.Controllers.Business
 
             // Is there a name conflict?
 
-            var message = await UnitOfWork.IsUniqueAsync(model.GetCore());
+            //var message = await UnitOfWork.IsUniqueAsync(model.GetCore());
 
-            if (!string.IsNullOrWhiteSpace(message))
-            {
-                feedback.Message = "A record for this running cost already exists";
-                return BadRequest(feedback);
-            }
+            //if (!string.IsNullOrWhiteSpace(message))
+            //{
+            //    feedback.Message = "A record for this running cost already exists";
+            //    return BadRequest(feedback);
+            //}
 
 
             var saveMe = false;
@@ -128,11 +128,11 @@ namespace SilkFlo.Web.Controllers.Business
                 feedback.Message = ex.Message;
                 return BadRequest(feedback);
             }
-            catch (UniqueConstraintException ex)
-            {
-                feedback.Message = ex.Message;
-                return BadRequest(feedback);
-            }
+            //catch (UniqueConstraintException ex)
+            //{
+            //    feedback.Message = ex.Message;
+            //    return BadRequest(feedback);
+            //}
             catch (Exception ex)
             {
                 Log(ex);

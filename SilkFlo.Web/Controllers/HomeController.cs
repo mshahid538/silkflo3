@@ -36,6 +36,9 @@ namespace SilkFlo.Web.Controllers
         [Route("")]
         public async Task<IActionResult> Index()
         {
+            var roles = User.Claims.Where(x => x.Type == "Role").ToList();
+            var isStandardUser = roles.Count == 1 && roles.Any(x => x.Value == "Standard User");
+
             // Get the select tenantId
             var userId = GetUserId();
             int? difference = 0;
@@ -51,7 +54,7 @@ namespace SilkFlo.Web.Controllers
                 return View("/Views/Home/maintenance.cshtml"); //return Redirect("maintenance");
 
             if ((await AuthorizeAsync(Policy.Subscriber)).Succeeded)
-                return IndexView(false, difference == 0 ? "new" : "");
+                return IndexView(false, difference == 0 ? isStandardUser ? "new_" : "new" : "", isStandardUser);
 
 
             if (!(await _authorization.AuthorizeAsync(User, Policy.Subscriber)).Succeeded)

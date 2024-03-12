@@ -245,7 +245,7 @@ namespace SilkFlo.Data.Persistence
                         {
                             try
                             {
-                                await db.InsertAsync(entities);
+                                await db.InsertAsync(tableName, entities[i]);
                                 successCount++;
                             }
                             catch (Exception ex)
@@ -266,12 +266,12 @@ namespace SilkFlo.Data.Persistence
             return successCount;
         }
 
-        public bool CheckIdeasWithExistingName(List<string> names)
+        public bool CheckIdeasWithExistingName(List<string> names, string clientId)
         {
             bool isExist = false;
             using (var db = GetDbConnection())
             {
-                isExist = db.Exists<Idea>("WHERE Name IN @0", names);
+                isExist = db.Exists<Idea>("WHERE Name IN (@0) AND ClientId = @1", names, clientId);
             }
 
             return isExist;
@@ -513,6 +513,20 @@ namespace SilkFlo.Data.Persistence
 
             //using (var db = GetDbConnection())
             //    return _db.Fetch<T>();
+        }
+
+        public async Task<User> GetUserByEmailAsync(string email)
+        {
+            if (!String.IsNullOrEmpty(email))
+            {
+                if (_db is null)
+                    _db = GetDbConnection();
+
+                var user = await _db.FirstOrDefaultAsync<User>("WHERE Lower(Email) = @0", email.ToLower());
+                return user;
+            }
+
+            return null;
         }
 
         private string GetTableName(Type type)
@@ -757,14 +771,18 @@ namespace SilkFlo.Data.Persistence
 
                     if (tableNameAttribute != null)
                     {
+
                         // Construct the Fetch<T> method using reflection
-                        MethodInfo fetchMethod = typeof(IDatabase).GetInterfaces()
-                            .SelectMany(i => i.GetMethods())
-                            .FirstOrDefault(m => m.Name == "Fetch" && m.IsGenericMethod)
-                            ?.MakeGenericMethod(type);
+                        //MethodInfo fetchMethod = typeof(IDatabase).GetInterfaces()
+                        //    .SelectMany(i => i.GetMethods())
+                        //    .FirstOrDefault(m => m.Name == "Fetch" && m.IsGenericMethod)
+                        //    ?.MakeGenericMethod(type);
 
                         // Invoke the Fetch<T> method
-                        var result = fetchMethod.Invoke(db, null);
+                        //var result = fetchMethod?.Invoke(db, null);
+
+                        var result = db.Fetch<dynamic>($"SELECT * FROM {tableNameAttribute.Value}");
+
                         _cache.Add(tableNameAttribute.Value, result, DateTimeOffset.Now.AddMinutes(10));
                     }
                 }

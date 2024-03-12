@@ -1,6 +1,7 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using SilkFlo.Web.ViewModels
+@using System.Net.Http
 @inject IAuthorizationService AuthorizationService
 
 <!DOCTYPE html>
@@ -52,18 +53,25 @@
 	@if (User.Identity.IsAuthenticated)
 	{
 		<div class="d-print-none sideBar_wide silkFlo_flex_wrap_right"
-		 id="topBar"
-		 style="overflow: hidden;">
+			 id="topBar"
+			 style="overflow: hidden;">
 			<div style="margin: 0px 25px 20px 0px; color: #3673f5; cursor: pointer; -webkit-text-stroke: 0.6px;" title="Click for useful help docs and guides" onclick="helpOptionsIcon()">
-				<i class="bi bi-question-circle bold-icon" style="color:#363853"></i>
-		
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="bi bi-question-circle bold-icon" viewBox="0 0 16 16">
+					<style>
+						text {
+							font-weight: bold;
+						}
+					</style>
+					<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+					<path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94" />
+				</svg>
 			</div>
 
 			<a data-bs-target="#ModalUserProfile"
-		   data-bs-toggle="modal"
-		   id="userProfileSummary"
-		   onclick="if(HotSpot.Card){ HotSpot.Card.Close();}"
-		   silkflo-url="User/GetUserProfileSummary">
+			   data-bs-toggle="modal"
+			   id="userProfileSummary"
+			   onclick="if(HotSpot.Card){ HotSpot.Card.Close();}"
+			   silkflo-url="User/GetUserProfileSummary">
 			</a>
 
 		</div>
@@ -73,22 +81,30 @@
 				<div class="HotSpotContent">
 					<div class="list-group">
 						<a href="https://silkflo.com/docs/" onClick="closeHelpOptionsIcon()" target="_blank" class="list-group-item list-group-item-action" style="color: #363853;">
-							<i class="bi bi-question-circle bold-icon" style="color: #363853; margin-right: 5px;"></i> Help Documents
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16" style="color:#363853; margin-right: 3px; margin-bottom: 3px;">
+								<path fill="currentColor" d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+								<path fill="currentColor" d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z" />
+							</svg>Help Documents
 						</a>
 						@{
-							var userId = User.FindFirst("UserId")?.Value;
-							var emailLink = $"mailto:support@silkflo.com?subject=Support%20Request%20-%20{userId}";
-
-							var result = await AuthorizationService.AuthorizeAsync(User, "Administrator");
-							if (result.Succeeded)
+							@if ((await AuthorizationService.AuthorizeAsync(User, "Manage Tenant Settings")).Succeeded)
 							{
+
+								var userId = User.FindFirst("UserId")?.Value;
+								var emailLink = $"mailto:support@silkflo.com?subject=Support%20Request%20-%20{userId}";
 								<a href="@emailLink" onClick="closeHelpOptionsIcon()" class="list-group-item list-group-item-action" style="color: #363853;">
-									<i class="bi bi-envelope" style="color: #363853; margin-right: 5px;"></i> E-mail Support
+									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope" style="color: #363853; margin-right: 3px; margin-bottom: 3px;" viewBox="0 0 16 16">
+										<path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z" />
+									</svg>
+									E-mail Support
 								</a>
 
 								// "Check if ADMINS of PRO and Enterprise plans"
 								<a href="https://zcal.co/aleo/30min" onClick="closeHelpOptionsIcon()" target="_blank" class="list-group-item list-group-item-action" style="color: #363853;">
-									<i class="bi bi-calendar" style="color: #363853; margin-right: 5px;"></i> Book a Call with our Founder
+									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar" style="color: #363853; margin-right: 3px; margin-bottom: 3px;" viewBox="0 0 16 16">
+										<path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z" />
+									</svg>
+									Book a Call with our Founder
 								</a>
 							}
 						}
@@ -97,73 +113,73 @@
 			</div>
 		</div>
 		<div class="sideBar_wide"
-		 id="layout">
+			 id="layout">
 
 
 			<div class="d-print-none noSelect sidebar transition"
-			 id="sidebar">
+				 id="sidebar">
 
 				<div class="silkFlo_flex_wrap_spaced">
 
 					<div class="sidebar-header">
 						<a data-bs-target="tooltip"
-					   data-placement="right"
-					   id="Logo"
-					   name="ToggleSidebar"
-					   title="Toggle Sidebar">
+						   data-placement="right"
+						   id="Logo"
+						   name="ToggleSidebar"
+						   title="Toggle Sidebar">
 							<img alt="Logo"
-							 class="logo"
-							 ignore="ignore"
-							 src="~/Icons/Logo.svg" />
+								 class="logo"
+								 ignore="ignore"
+								 src="~/Icons/Logo.svg" />
 						</a>
 						<a data-bs-target="tooltip"
-					   data-placement="right"
-					   href="/"
-					   name="ShowHomePage"
-					   title="Show Home Page">
+						   data-placement="right"
+						   href="/"
+						   name="ShowHomePage"
+						   title="Show Home Page">
 							<img alt="Logo"
-							 class="silkFlo text"
-							 ignore="ignore"
-							 src="~/Icons/SilkFlo.svg" />
+								 class="silkFlo text"
+								 ignore="ignore"
+								 src="~/Icons/SilkFlo.svg" />
 						</a>
 
 					</div>
 					<a id="ToggleSidebar"
-				   name="ToggleSidebar"
-				   nodecoration="">
+					   name="ToggleSidebar"
+					   nodecoration="">
 						<img id="sideBar_arrow"
-						 src="~/Icons/SideBar/Arrow.svg"
-						 style="transition: all 1s;" />
+							 src="~/Icons/SideBar/Arrow.svg"
+							 style="transition: all 1s;" />
 					</a>
 				</div>
 
 
 				<nav aria-label="navigation"
-				 class="collapse"
-				 id="navigation"
-				 silkflo-callback="SilkFlo.SideBar.NavigationFirstLoad_Callback"
-				 silkflo-loadOnce=""
-				 silkflo-url="GetNavigation">
+					 class="collapse"
+					 id="navigation"
+					 silkflo-callback="SilkFlo.SideBar.NavigationFirstLoad_Callback"
+					 silkflo-loadOnce=""
+					 silkflo-url="GetNavigation">
 				</nav>
 
 				@if (showNavigation)
 				{
 					<div class="contextMenu modelSubmitIdea"
-				 id="submitIdeaMenu">
+						 id="submitIdeaMenu">
 						<div class="contextMenu_Brand"> </div>
 
 						<a class="d-flex list-group-item list-group-item-action noSelect pointer"
-				   data-bs-target="#ModalSubmitIdea"
-				   data-bs-toggle="modal"
-				   onclick="if(HotSpot.Card){ HotSpot.Card.Close();} SilkFlo.SideBar.SubmitIdeaMenu.Hide ();SilkFlo.SideBar.ShowModelSubmitIdea ();">
+						   data-bs-target="#ModalSubmitIdea"
+						   data-bs-toggle="modal"
+						   onclick="if(HotSpot.Card){ HotSpot.Card.Close();} SilkFlo.SideBar.SubmitIdeaMenu.Hide ();SilkFlo.SideBar.ShowModelSubmitIdea ();">
 							<img class="modelSubmitIdea_icon"
-						 src="~/Icons/Plus.svg" />
+								 src="~/Icons/Plus.svg" />
 							<h3>Employee Idea</h3>
 						</a>
 						<a class="d-flex list-group-item list-group-item-action noSelect pointer"
-				   onclick="SilkFlo.SideBar.SubmitIdeaMenu.Hide ();SilkFlo.SideBar.OnClick ( '/Idea/Edit', SilkFlo.ViewModels.Business.Idea.Edit.Get_Callback );">
+						   onclick="SilkFlo.SideBar.SubmitIdeaMenu.Hide ();SilkFlo.SideBar.OnClick ( '/Idea/Edit', SilkFlo.ViewModels.Business.Idea.Edit.Get_Callback );">
 							<img class="modelSubmitIdea_icon"
-						 src="~/Icons/SideBar/Ideas.svg" />
+								 src="~/Icons/SideBar/Ideas.svg" />
 							<h3>CoE Idea</h3>
 						</a>
 					</div>
@@ -178,41 +194,41 @@
 							<div style="margin: 0 0 24px 0; border-top: 2px solid gray;"> </div>
 
 							<div class="workspace"
-					 id="workspaceSelector"
-					 style="margin-bottom: 32px; margin-left: calc(var(--silkFlo_logo_width) / 2); color: white;">
+								 id="workspaceSelector"
+								 style="margin-bottom: 32px; margin-left: calc(var(--silkFlo_logo_width) / 2); color: white;">
 							</div>
 
 
 							<div class="narrowHide"
-					 id="NavigationInviteTeam"
-					 style="text-align: center; margin-bottom: 48px;">
+								 id="NavigationInviteTeam"
+								 style="text-align: center; margin-bottom: 48px;">
 								<label class="text-secondary"
-						   style="margin-bottom: 12px;">
+									   style="margin-bottom: 12px;">
 									Invite your team and start collaborating!
 								</label>
 								<button class="btn btn-warning"
-							data-bs-target="#ModalInviteTeamMember"
-							data-bs-toggle="modal"
-							onclick="if(HotSpot.Card){ HotSpot.Card.Close();}SilkFlo.ViewModels.User.TeamMember.Invite ();">
+										data-bs-target="#ModalInviteTeamMember"
+										data-bs-toggle="modal"
+										onclick="if(HotSpot.Card){ HotSpot.Card.Close();}SilkFlo.ViewModels.User.TeamMember.Invite ();">
 									Invite Team Member
 								</button>
 							</div>
 						}
 
 						<ul class="list-unstyled"
-					id="menuSignOut"
-					style="margin: 0 0 var(--silkFlo_logo_width) calc(var(--silkFlo_logo_width) / 2);">
+							id="menuSignOut"
+							style="margin: 0 0 var(--silkFlo_logo_width) calc(var(--silkFlo_logo_width) / 2);">
 							<li id="btnSignOut">
 								<a asp-action="SignOut"
-						   asp-controller="Account"
-						   data-bs-target="tooltip"
-						   data-placement="right"
-						   id="signOut"
-						   name="SignOut"
-						   title="Sign Out">
+								   asp-controller="Account"
+								   data-bs-target="tooltip"
+								   data-placement="right"
+								   id="signOut"
+								   name="SignOut"
+								   title="Sign Out">
 									<img class="icon"
-								 src="~/Icons/SideBar/Sign Out.svg"
-								 style="fill: var(--bs-danger)" />
+										 src="~/Icons/SideBar/Sign Out.svg"
+										 style="fill: var(--bs-danger)" />
 									<span class="text text-danger">Sign Out</span>
 								</a>
 							</li>
@@ -224,7 +240,7 @@
 			</div>
 
 			<div class="main transition"
-			 id="content">
+				 id="content">
 
 
 				@RenderBody()
@@ -260,7 +276,7 @@
 	</div>
 
 	@await Html.PartialAsync(
-	"Business/Idea/ManageCollaborators/_Modal")
+			"Business/Idea/ManageCollaborators/_Modal")
 
 
 
@@ -297,45 +313,45 @@
 
 
 	@await Html.PartialAsync("MessageBoxes/_YesNo",
-	new MessageBox
+			new MessageBox
 	{
-	Id = "MessageBoxUserProfileEmailChangeConfirmation",
-	Title = "Email Change Confirmation",
-	Message = "An email will be sent to your new email address.<br>Please open it and click the link to validate your new address.<br><br><span class=\"text-warning\">Please note your new email address will not be valid until you have done so.<span>",
-	Yes_Javascript = "SilkFlo.ViewModels.UserProfile.ConfirmEmailChange_Click();",
-	No_Javascript = "",
-	TrueLabel = "Continue",
-	FalseLabel = "Cancel"
+		Id = "MessageBoxUserProfileEmailChangeConfirmation",
+		Title = "Email Change Confirmation",
+		Message = "An email will be sent to your new email address.<br>Please open it and click the link to validate your new address.<br><br><span class=\"text-warning\">Please note your new email address will not be valid until you have done so.<span>",
+		Yes_Javascript = "SilkFlo.ViewModels.UserProfile.ConfirmEmailChange_Click();",
+		No_Javascript = "",
+		TrueLabel = "Continue",
+		FalseLabel = "Cancel"
 	})
 
 
 	@await Html.PartialAsync("MessageBoxes/_Ok",
-	new MessageBox
+			new MessageBox
 	{
-	Id = "MessageBoxPasswordChangedConfirmation",
-	Title = "Password Changed",
-	Message = "Your password has been changed.",
-	Yes_Javascript = "SilkFlo.ViewModels.UserProfile.PasswordChangedConfirmation_Click();",
-	TrueLabel = "Continue"
+		Id = "MessageBoxPasswordChangedConfirmation",
+		Title = "Password Changed",
+		Message = "Your password has been changed.",
+		Yes_Javascript = "SilkFlo.ViewModels.UserProfile.PasswordChangedConfirmation_Click();",
+		TrueLabel = "Continue"
 	})
 
 	@await Html.PartialAsync("MessageBoxes/_Ok",
-	new MessageBox
+			new MessageBox
 	{
-	Id = "MessageBox_Ok",
-	Title = "",
-	Message = "",
-	TrueLabel = "Ok"
+		Id = "MessageBox_Ok",
+		Title = "",
+		Message = "",
+		TrueLabel = "Ok"
 	})
 
 
 	@* Delete Confirmation Message *@
 	@await Html.PartialAsync("MessageBoxes/_YesNo",
-	new MessageBox
+			new MessageBox
 	{
-	Id = "MessageBox_YesNo",
-	Title = "",
-	Message = ""
+		Id = "MessageBox_YesNo",
+		Title = "",
+		Message = ""
 	})
 
 

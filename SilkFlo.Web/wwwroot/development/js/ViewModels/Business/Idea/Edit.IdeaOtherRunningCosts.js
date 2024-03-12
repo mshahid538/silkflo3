@@ -1,4 +1,5 @@
-﻿if (!SilkFlo.ViewModels)
+﻿/* eslint-disable no-undef */
+if (!SilkFlo.ViewModels)
     SilkFlo.ViewModels = {};
 
 if (!SilkFlo.ViewModels.Business)

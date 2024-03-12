@@ -21,15 +21,24 @@
             <h2 style="color: var(--bs-warning)">(Draft)</h2>
         }
 
-        @if (Model.Applications.Count == 0 || Model.Departments.Count == 0)
+        @if (Model.Applications.Count == 0)
         {
             <div style="margin-top: 3rem; margin-bottom: 3rem">
                 <h2 class="text-info">Platform Setup Required</h2>
                 <p><b>Before proceeding you will need to perform some platform set up.</b></p>
-                
-                <p>Add departments before adding an idea. <a href="/Settings/tenant/Platform-Setup/Business-Units">Settings &gt; Platform-Setup &gt;Business-Units</a></p>
     
                 <p>Add applications before adding an idea. <a href="/Settings/tenant/Platform-Setup/Applications">Settings > Platform Setup > Applications</a></p>
+            </div>
+        }
+
+
+        @if (Model.Departments.Count == 0)
+        {
+            <div style="margin-top: 3rem; margin-bottom: 3rem">
+                <h2 class="text-info">Platform Setup Required</h2>
+                <p><b>Before proceeding you will need to perform some platform set up.</b></p>
+
+                <p>Add departments before adding an idea. <a href="/Settings/tenant/Platform-Setup/Business-Units">Settings &gt; Platform-Setup &gt;Business-Units</a></p>
             </div>
         }
 

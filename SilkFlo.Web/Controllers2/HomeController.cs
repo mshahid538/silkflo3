@@ -10,19 +10,34 @@ namespace SilkFlo.Web.Controllers
     public partial class HomeController
     {
 
-        private IActionResult IndexView(bool returnStringContent, string hash)
+        private IActionResult IndexView(bool returnStringContent, string hash, bool isStUser)
         {
             if (!String.IsNullOrEmpty(hash))
             {
+
+                if (isStUser)
+                {
+                    return Redirect(returnStringContent ?
+                        "./api/Dashboard" :
+                    $"./Dashboard#{hash}");
+                }
+
                 return Redirect(returnStringContent ?
                     "./api/Dashboard" :
                     $"./Dashboard/Performance#{hash}");
             }
             else
             {
+                if (isStUser)
+                {
+                    return Redirect(returnStringContent ?
+                        "./api/Dashboard" :
+                      "./Dashboard/");
+                }
+                
                 return Redirect(returnStringContent ?
                     "./api/Dashboard" :
-                    "./Dashboard/Performance");
+                "./Dashboard/Performance");
             }
         }
 

@@ -1,6 +1,8 @@
 ﻿using MailKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MimeKit;
 using Newtonsoft.Json;
 using sib_api_v3_sdk.Api;
@@ -40,11 +42,23 @@ namespace SilkFlo.Email
 
         public static string Domain { get; private set; }
 
-        public static void Setup(bool isProduction, string testEmailAddress, string domain)
+        public static void Setup(string brevoApiKey, bool isProduction, string testEmailAddress, string domain)
         {
-            if (Configuration.Default.ApiKey.Count == 0)
-                Configuration.Default.ApiKey.Add("api-key", "");
-            Service.IsProduction = isProduction;
+			//var brevoApiKey = Environment.GetEnvironmentVariable("BREVO_API_KEY");
+
+			//if (string.IsNullOrEmpty(brevoApiKey))
+			//{
+			//	Configuration.Default.ApiKey.Add("api-key", brevoApiKey);
+			//	Service.IsProduction = isProduction;
+			//	Service.TestEmailAddress = testEmailAddress;
+			//	Service.Domain = domain;
+			//}
+
+			//if (Configuration.Default.ApiKey.Count == 0)
+			//Configuration.Default.ApiKey.Add("api-key", "");
+
+			Configuration.Default.ApiKey.Add("api-key", brevoApiKey);
+			Service.IsProduction = isProduction;
             Service.TestEmailAddress = testEmailAddress;
             Service.Domain = domain;
         }

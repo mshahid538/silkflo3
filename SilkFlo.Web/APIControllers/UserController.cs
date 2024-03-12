@@ -1364,5 +1364,39 @@ namespace SilkFlo.Web.APIControllers
                 return BadRequest(feedback);
             }
         }
+
+        [HttpGet("/api/User/access/{userId}")]
+        public async Task<IActionResult> ValidateUserHelpPermissions(string userId)
+        {
+            if (!String.IsNullOrEmpty(userId))
+            {
+                var roles = User.Claims.Where(x => x.Type == "Role").ToList();
+                var isStandardUser = roles.Count == 1 && roles.Any(x => x.Value == "Standard User");
+
+                if (isStandardUser)
+                {
+                    return Ok(false);
+                }
+
+
+    //            var user = await _unitOfWork.Users.GetAsync(userId);
+				//await _unitOfWork.BusinessClients.GetClientForAsync(user);
+
+    //            var model = new Models.Business.Client(user.Client);
+    //            var subscription = await model.GetLastSubscriptionAsync(_unitOfWork);
+    //            if (subscription != null && string.IsNullOrWhiteSpace(subscription.PriceId))
+    //            {
+				//	await _unitOfWork.ShopPrices.GetPriceForAsync(subscription.GetCore());
+				//	if (subscription.Price != null)
+				//	{
+				//		await _unitOfWork.ShopProducts.GetProductForAsync(subscription.Price.GetCore());
+				//	}
+				//}
+
+                return Ok(true);
+            }
+
+            return Ok(false);
+        }
     }
 }

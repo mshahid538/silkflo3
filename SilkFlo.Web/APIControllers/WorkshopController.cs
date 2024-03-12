@@ -26,6 +26,11 @@ namespace SilkFlo.Web.APIControllers
 
         public async Task<IActionResult> GetStage()
         {
+            //var roles = User.Claims.Where(x => x.Type == "Role").ToList();
+            //var isStandardUser = roles.Count == 1 && roles.Any(x => x.Value == "Standard User");
+            //if (!isStandardUser)
+            //    return NegativeFeedback();
+
             if (!(await AuthorizeAsync(Policy.Subscriber)).Succeeded)
                 return NegativeFeedback();
 

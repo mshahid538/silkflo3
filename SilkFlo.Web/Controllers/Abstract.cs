@@ -338,6 +338,7 @@ namespace SilkFlo.Web.Controllers
             Delete(Services.Cookie.PasswordHash);
             Delete(Services.Cookie.ClientId);
             Delete(Services.Cookie.SilkFloData);
+            Delete(Services.Cookie.LoginType);
         }
 
 
