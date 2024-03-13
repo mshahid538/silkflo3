@@ -108,12 +108,13 @@ namespace SilkFlo.Web.Controllers
             {
 				var tenant = await GetClientAsync();
 				var rows = tableData.ToObject<List<COEBulkIdeaModel>>();
-                
-                var result = await SaveIdeas(rows, tenant.Id);
 
-                return Ok(new { status = true, message = "Import process started.", SuccessCount = result.Item1, FailedCount = result.Item2 });
-            }
-            catch (Exception ex)
+				          var result = await SaveIdeas(rows, tenant.Id);
+
+				return Ok(new { status = true, message = "Import process started.", SuccessCount = result.Item1, FailedCount = result.Item2 });
+
+			}
+			catch (Exception ex)
             {
                 return Ok(new { status = false, message = "Some error occurred during Import." });
             }
@@ -168,7 +169,7 @@ namespace SilkFlo.Web.Controllers
                     idea.AutomationGoalId = (await _unitOfWork.SharedAutomationGoals.GetByNameAsync(row.AutomationGoalId))?.Id; ///// spelling mistake
                     idea.ApplicationStabilityId = (await _unitOfWork.SharedApplicationStabilities.GetByNameAsync(row.ApplicationStabilityId))?.Id;
                     idea.TaskFrequencyId = (await _unitOfWork.SharedTaskFrequencies.GetByNameAsync(row.TaskFrequencyId))?.Id;
-                    idea.AverageReviewTimeComment = row.AverageReviewTimeComment;
+                    idea.AverageReworkTime = row.AverageReworkTime;
                     idea.ProcessPeakId = (await _unitOfWork.SharedProcessPeaks.GetByNameAsync(row.ProcessPeakId))?.Id;
                     idea.AverageNumberOfStepId = (await _unitOfWork.SharedAverageNumberOfSteps.GetByNameAsync(row.AverageNumberOfStepId))?.Id;
                     idea.NumberOfWaysToCompleteProcessId = (await _unitOfWork.SharedNumberOfWaysToCompleteProcesses.GetByNameAsync(row.NumberOfWaysToCompleteProcessId))?.Id;
@@ -182,7 +183,7 @@ namespace SilkFlo.Web.Controllers
                     idea.AverageErrorRate = row.AverageErrorRate;
                     idea.WorkingHour = row.WorkingHour;
                     idea.AverageProcessingTime = row.AverageProcessingTime;
-                    idea.AverageReworkTime = row.AverageReworkTime;
+                    idea.AverageReviewTime = row.AverageReviewTime;
                     idea.AverageWorkToBeReviewed = row.AverageWorkToBeReviewed;
                     idea.PotentialFineAmount = row.PotentialFineAmount;
                     idea.PotentialFineProbability = row.PotentialFineProbability;
@@ -333,34 +334,34 @@ namespace SilkFlo.Web.Controllers
                                 ProcessId = dataSet.Tables[0].Rows[i].ItemArray[8] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[8]) : string.Empty,
                                 Stage = dataSet.Tables[0].Rows[i].ItemArray[9] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[9]) : string.Empty,
                                 Status = dataSet.Tables[0].Rows[i].ItemArray[10] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[10]) : string.Empty,
-                                DeployeementDate = DateTime.TryParse(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[11]), out DateTime deployeementDate) ? deployeementDate : DateTime.MinValue,
-                                RuleId = dataSet.Tables[0].Rows[i].ItemArray[12] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[12]) : string.Empty,
+								DeployementDate = DateTime.TryParse(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[11]), out DateTime deployementDate) && !string.IsNullOrEmpty(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[11])) ? deployementDate : (DateTime?)null,
+							    RuleId = dataSet.Tables[0].Rows[i].ItemArray[12] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[12]) : string.Empty,
                                 InputId = dataSet.Tables[0].Rows[i].ItemArray[13] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[13]) : string.Empty,
                                 InputDataStructureId = dataSet.Tables[0].Rows[i].ItemArray[14] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[14]) : string.Empty,
                                 ProcessStabilityId = dataSet.Tables[0].Rows[i].ItemArray[15] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[15]) : string.Empty,
                                 DocumentationPresentId = dataSet.Tables[0].Rows[i].ItemArray[16] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[16]) : string.Empty,
                                 AutomationGoalId = dataSet.Tables[0].Rows[i].ItemArray[17] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[17]) : string.Empty,
                                 ApplicationStabilityId = dataSet.Tables[0].Rows[i].ItemArray[18] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[18]) : string.Empty,
-                                AverageWorkingDay = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[19]?.ToString(), out int parsedValue) ? parsedValue : 0,
-                                WorkingHour = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[20]?.ToString(), out decimal workingHourResult) ? workingHourResult : 0.0m,
-                                AverageEmployeeFullCost = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[21]?.ToString(), out var AverageEmployeeFullCostresult) ? AverageEmployeeFullCostresult : 0,
-                                EmployeeCount = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[22]?.ToString(), out var EmployeeCountresult) ? EmployeeCountresult : 0,
+								AverageWorkingDay = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[19]?.ToString(), out int parsedValue) ? parsedValue : (int?)null,
+							    WorkingHour = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[20]?.ToString(), out decimal workingHourResult) ? workingHourResult : (decimal?)null,
+							    AverageEmployeeFullCost = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[21]?.ToString(), out int averageEmployeeFullCostResult) ? averageEmployeeFullCostResult : (int?)null,
+                                EmployeeCount = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[22]?.ToString(), out int employeeCountResult) ? employeeCountResult : (int?)null,
                                 TaskFrequencyId = Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[23]) ?? string.Empty,
-                                ActivityVolumeAverage = dataSet.Tables[0].Rows[i].ItemArray[24] != null ? int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[24].ToString(), out var activityVolumeResult) ? activityVolumeResult : 0 : 0,
-                                AverageProcessingTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[25]?.ToString(), out decimal avgProcessingTimeResult) ? avgProcessingTimeResult : 0.0m,
-                                AverageErrorRate = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[26]?.ToString(), out int averageErrorRateResult) ? averageErrorRateResult : 0,
-                                AverageReworkTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[27]?.ToString(), out decimal averageReworkTimeResult) ? averageReworkTimeResult : 0.0m,
-                                AverageWorkToBeReviewed = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[28]?.ToString(), out decimal averageWorkToBeReviewedResult) ? averageWorkToBeReviewedResult : 0.0m,
-                                AverageReviewTimeComment = dataSet.Tables[0].Rows[i].ItemArray[29]?.ToString() ?? string.Empty,
-                                ProcessPeakId = dataSet.Tables[0].Rows[i].ItemArray[30]?.ToString() ?? string.Empty,
+                                ActivityVolumeAverage = dataSet.Tables[0].Rows[i].ItemArray[24] != null ? int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[24].ToString(), out int activityVolumeResult) ? activityVolumeResult : (int?)null : (int?)null,
+								AverageProcessingTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[25]?.ToString(), out decimal avgProcessingTimeResult) ? avgProcessingTimeResult : (decimal?)null,
+							    AverageErrorRate = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[26]?.ToString(), out int averageErrorRateResult) ? averageErrorRateResult : (int?)null,
+							    AverageReviewTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[27]?.ToString(), out decimal averageReviewTimeResult) ? averageReviewTimeResult : (decimal?)null,
+						    	AverageWorkToBeReviewed = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[28]?.ToString(), out decimal averageWorkToBeReviewedResult) ? averageWorkToBeReviewedResult : (decimal?)null,
+						    	AverageReworkTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[29]?.ToString(), out decimal averageReworkTimeResult) ? averageReworkTimeResult : (decimal?)null,
+								ProcessPeakId = dataSet.Tables[0].Rows[i].ItemArray[30]?.ToString() ?? string.Empty,
                                 AverageNumberOfStepId = dataSet.Tables[0].Rows[i].ItemArray[31]?.ToString() ?? string.Empty,
                                 NumberOfWaysToCompleteProcessId = dataSet.Tables[0].Rows[i].ItemArray[32]?.ToString() ?? string.Empty,
                                 DataInputPercentOfStructuredId = dataSet.Tables[0].Rows[i].ItemArray[33]?.ToString() ?? string.Empty,
                                 DecisionCountId = dataSet.Tables[0].Rows[i].ItemArray[34]?.ToString() ?? string.Empty,
                                 DecisionDifficultyId = dataSet.Tables[0].Rows[i].ItemArray[35]?.ToString() ?? string.Empty,
-                                PotentialFineAmount = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[36]?.ToString(), out decimal potentialFineAmountResult) ? potentialFineAmountResult : 0.0m,
-                                PotentialFineProbability = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[37]?.ToString(), out decimal potentialFineProbabilityResult) ? potentialFineProbabilityResult : 0.0m,
-                                IsHighRisk = dataSet.Tables[0].Rows[i].ItemArray[38]?.ToString() ?? string.Empty,
+								PotentialFineAmount = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[36]?.ToString(), out decimal potentialFineAmountResult) ? potentialFineAmountResult : (decimal?)null,
+							    PotentialFineProbability = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[37]?.ToString(), out decimal potentialFineProbabilityResult) ? potentialFineProbabilityResult : (decimal?)null,
+							    IsHighRisk = dataSet.Tables[0].Rows[i].ItemArray[38]?.ToString() ?? string.Empty,
                                 IsDataSensitive = dataSet.Tables[0].Rows[i].ItemArray[39]?.ToString() ?? string.Empty,
                                 IsAlternative = dataSet.Tables[0].Rows[i].ItemArray[40]?.ToString() ?? string.Empty,
                                 IsHostUpgrade = dataSet.Tables[0].Rows[i].ItemArray[41]?.ToString() ?? string.Empty,

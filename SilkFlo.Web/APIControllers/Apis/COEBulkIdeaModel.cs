@@ -15,7 +15,7 @@ namespace SilkFlo.Web.APIControllers.Apis
         public string? ProcessId { get; set; }   /////ProcessId confusing
         public string? Stage { get; set; }   /////ProcessId confusing
         public string? Status { get; set; }   /////ProcessId confusing
-        public DateTime? DeployeementDate { get; set; }   /////////// confusing
+        public DateTime? DeployementDate { get; set; }   /////////// confusing
         public string? RuleId { get; set; }
         public string? InputId { get; set; }
         public string? InputDataStructureId { get; set; }
@@ -24,7 +24,7 @@ namespace SilkFlo.Web.APIControllers.Apis
         public string? AutomationGoalId { get; set; }
         public string? ApplicationStabilityId { get; set; }
         public string? TaskFrequencyId { get; set; }
-        public string? AverageReviewTimeComment { get; set; }
+        public decimal? AverageReviewTime { get; set; }
         public string? ProcessPeakId { get; set; }
         public string? AverageNumberOfStepId { get; set; }
         public string? NumberOfWaysToCompleteProcessId { get; set; }

@@ -1,6 +1,8 @@
 @model SilkFlo.Web.ViewModels.Workshop.Page
 
 <style>
+
+
 	#tableContainer {
 		max-height: 500px;
 		overflow: auto;
@@ -110,7 +112,7 @@
 		 aria-hidden="true">
 		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 646px">
 			<form class="row" style="margin-top:0 !important">
-				<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
+				<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeUploadPipelineModal()"></button>
 
 				<br />
 				<span style="padding-left: 815px; font-family: 'Poppins', sans-serif; font-size: 14px; color: #353535; text-decoration: underline;margin-top:10px">Step 1 of 4</span>
@@ -169,7 +171,7 @@
 		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 646px">
 			<form class="row" style="margin-top:0 !important">
 
-				<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
+				<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeShowUploadPipelineMessageModal()"></button>
 
 				<br />
 				<span style="padding-left: 815px; font-family: 'Poppins', sans-serif; font-size: 14px; color: black; text-decoration: underline; margin-top:10px">Step 2 of 4</span>
@@ -210,7 +212,7 @@
 		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 760px">
 			<form class="row" style="margin-top:0 !important">
 
-				<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
+				<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeShowDataPipelineModal()"></button>
 				<span style="padding-left: 815px; font-family: 'Poppins', sans-serif; font-size: 14px; color: black; text-decoration: underline; margin-top:10px">Step 3 of 4</span>
 				<span style="padding-left: 100px; font-weight: bold; font-size: 25px; font-family: 'Manrope', sans-serif;">Let's verify your data</span>
 				<span style=" padding-left: 100px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 16px; margin-bottom: 10px;">Double check that your data is correct.</span>
@@ -219,34 +221,34 @@
 					<table id="Coedatalist" class="table table-striped dataTable table-bordered">
 						<thead style="position: sticky; top: 0; background-color: #ffffff;">
 							<tr>
-								<td style="position: sticky; left: 0; background-color: #ffffff;"><strong></strong></td>
+								<td style="position: sticky; background-color: #ffffff;"><strong></strong></td>
 								<td style="position: sticky; left: 10px; background-color: #ffffff;"><strong>Name</strong></td>
 								<td><strong>CreatedDate</strong></td>
 								<td><strong>SubmitterEmailAddress</strong></td>
 								<td><strong>ProcessOwnerEmailAddress</strong></td>
 								<td><strong>AutomationId</strong></td>
 								<td><strong style="padding:300px">Description</strong></td>
-								<td><strong>DepartmentId</strong></td>
-								<td><strong>TeamId</strong></td>
-								<td><strong>ProcessId</strong></td>
+								<td><strong>Department</strong></td>
+								<td><strong>Team</strong></td>
+								<td><strong>Process</strong></td>
 								<td><strong>Stage</strong></td>
 								<td><strong>Status</strong></td>
-								<td><strong>DeployeementDate</strong></td>
-								<td><strong>RuleId</strong></td>
-								<td><strong>InputId</strong></td>
-								<td><strong>InputDataStructureId</strong></td>
-								<td><strong>ProcessStabilityId</strong></td>
-								<td><strong>DocumentationPresentId</strong></td>
-								<td><strong>AutomationGoalId</strong></td>
-								<td><strong>ApplicationStabilityId</strong></td>
-								<td><strong>TaskFrequencyId</strong></td>
-								<td><strong>AverageReviewTimeComment</strong></td>
-								<td><strong>ProcessPeakId</strong></td>
-								<td><strong>AverageNumberOfStepId</strong></td>
-								<td><strong>NumberOfWaysToCompleteProcessId</strong></td>
-								<td><strong>DataInputPercentOfStructuredId</strong></td>
-								<td><strong>DecisionCountId</strong></td>
-								<td><strong>DecisionDifficultyId</strong></td>
+								<td><strong>DeployementDate</strong></td>
+								<td><strong>Rule</strong></td>
+								<td><strong>Input</strong></td>
+								<td><strong>InputDataStructure</strong></td>
+								<td><strong>ProcessStability</strong></td>
+								<td><strong>DocumentationPresent</strong></td>
+								<td><strong>AutomationGoal</strong></td>
+								<td><strong>ApplicationStability</strong></td>
+								<td><strong>TaskFrequency</strong></td>
+								<td><strong>AverageReviewTime</strong></td>
+								<td><strong>ProcessPeak</strong></td>
+								<td><strong>AverageNumberOfStep</strong></td>
+								<td><strong>NumberOfWaysToCompleteProcess</strong></td>
+								<td><strong>DataInputPercentOfStructured</strong></td>
+								<td><strong>DecisionCount</strong></td>
+								<td><strong>DecisionDifficulty</strong></td>
 								<td><strong>AverageWorkingDay</strong></td>
 								<td><strong>AverageEmployeeFullCost</strong></td>
 								<td><strong>ActivityVolumeAverage</strong></td>
@@ -258,10 +260,10 @@
 								<td><strong>AverageWorkToBeReviewed</strong></td>
 								<td><strong>PotentialFineAmount</strong></td>
 								<td><strong>PotentialFineProbability</strong></td>
-								<td><strong>IsHighRisk</strong></td>
+								<td><strong>IsHighRiskSystems</strong></td>
 								<td><strong>IsDataSensitive</strong></td>
 								<td><strong>IsAlternative</strong></td>
-								<td><strong>IsHostUpgrade</strong></td>
+								<td><strong>IsSystemUpgrade</strong></td>
 								<td><strong>IsDataInputScanned</strong></td>
 								<th style="position: sticky; background-color: #ffffff;"><strong>Action</strong></th>
 							</tr>
@@ -345,7 +347,7 @@
 	<div class="modal fade" id="ShowResultModal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-dialog modal-content" style="border-radius:10px;padding: 25px;max-width: 949px;max-height: 646px">
 
-			<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeModalAndRefreshPage()"></button>
+			<button type="button" data-dismiss="modal" class="btn-close" style="position: absolute; top: 10px; right: 15px;" aria-label="Close" onclick="closeShowResultModal()"></button>
 			<br />
 			<span style="padding-left: 250px; font-weight: bold; font-size: 28px; font-family: 'Manrope', sans-serif;">Your data has been imported!</span>
 			<br />
