@@ -1,8 +1,6 @@
 @model SilkFlo.Web.ViewModels.Workshop.Page
 
 <style>
-
-
 	#tableContainer {
 		max-height: 500px;
 		overflow: auto;
@@ -121,7 +119,7 @@
 				<span style=" padding-left: 120px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 16px;">Move your pipeline data from an Excel spreadsheet into SilkFlo</span>
 				<br />
 
-				<span style=" padding-left: 120px; color:#8E9CA7 ; font-family: 'Poppins', sans-serif; font-size: 16px; margin-top:10px">First, <span style="color: #2F80ED;  cursor: pointer; " id="DownloadTemplate">Download</span> our template Excel file.</span>
+				<span style=" padding-left: 120px; color:#8E9CA7 ; font-family: 'Poppins', sans-serif; font-size: 16px; margin-top:10px">First, <span style="color: #2F80ED;  cursor: pointer; " id="DownloadTemplate" onclick="DownloadTemplate()">Download</span> our template Excel file.</span>
 
 				<div class="col-12" style="margin-top: 25px;">
 					<div id="dropZone" style=" background-color: white; border-color:#ff8a00; margin-inline: auto; margin-top: 0; flex: 0.5; height: 209px; width: 802px;" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
@@ -221,7 +219,7 @@
 					<table id="Coedatalist" class="table table-striped dataTable table-bordered">
 						<thead style="position: sticky; top: 0; background-color: #ffffff;">
 							<tr>
-								<td style="position: sticky; background-color: #ffffff;"><strong></strong></td>
+								<td style="position: sticky; left: 0; background-color: #ffffff;"><strong></strong></td>
 								<td style="position: sticky; left: 10px; background-color: #ffffff;"><strong>Name</strong></td>
 								<td><strong>CreatedDate</strong></td>
 								<td><strong>SubmitterEmailAddress</strong></td>
@@ -325,9 +323,9 @@
 			</div>
 			<br />
 			<div style="width: 50%; height: 6px;  background: linear-gradient(to right,  #2F80ED 50%, #D9DBE9 50%); margin: 20px auto;"></div>
-			@*<span style="padding-left: 150px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 18px;">Importing process may take some time.</span>
-			*@
-			@*<div>
+			<span style="padding-left: 150px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 18px;">This may take some time, feel free to close this window to continue working.</span>
+			
+			<div>
 				<button type="button"
 						id="ContinueWorking"
 						onclick="continueWorking()"
@@ -338,7 +336,7 @@
 				<div style="margin-left: 400px; margin-top:230px;" id="loader">
 				</div>
 
-			</div>*@
+			</div>
 
 
 		</div>

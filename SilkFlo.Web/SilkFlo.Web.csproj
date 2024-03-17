@@ -102,6 +102,9 @@
 
 
 	<ItemGroup>
+	  <None Include="wwwroot\IdeaTemplate\IdeasListTemplate.xlsx" />
+	</ItemGroup>
+	<ItemGroup>
 	  <ProjectReference Include="..\Silkflo.API\Silkflo.API.csproj" />
 	  <ProjectReference Include="..\SilkFlo.Data.Core\SilkFlo.Data.Core.csproj" />
 	  <ProjectReference Include="..\SilkFlo.Data.ZipFileStorage\SilkFlo.Data.ZipFileStorage.csproj" />
