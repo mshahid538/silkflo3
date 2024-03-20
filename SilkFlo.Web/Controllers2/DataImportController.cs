@@ -14,6 +14,9 @@ using ExcelDataReader;
 using System.Linq;
 using SilkFlo.Web.ViewModels.Dashboard;
 using System.Threading;
+using MediatR;
+using Silkflo.API.Services.ImportProcessState.Commands;
+using Silkflo.API.Services.ImportProcessState.Queries;
 
 namespace SilkFlo.Web.Controllers
 {
@@ -21,12 +24,15 @@ namespace SilkFlo.Web.Controllers
     {
         private readonly IConfiguration _configuration;
         static Dictionary<string, string> ImportStatus;
-        public DataImportController(IUnitOfWork unitOfWork, ViewToString viewToString, IAuthorizationService authorization, IConfiguration configuration)
+        private readonly IMediator _mediator;
+
+		public DataImportController(IUnitOfWork unitOfWork, ViewToString viewToString, IAuthorizationService authorization, IConfiguration configuration, IMediator mediator)
             : base(unitOfWork, viewToString, authorization)
         {
             _configuration = configuration;
             ImportStatus = new Dictionary<string, string>();
-        }
+            _mediator = mediator;
+		}
 
         [HttpPost("/Data/Import")]
         public async Task<IActionResult> ImportByFile([FromForm] IFormFile File)
@@ -106,14 +112,24 @@ namespace SilkFlo.Web.Controllers
         {
             try
             {
-				var tenant = await GetClientAsync();
-				var rows = tableData.ToObject<List<COEBulkIdeaModel>>();
+                var userId = GetUserId();
+                var tenant = await GetClientAsync();
 
-				          var result = await SaveIdeas(rows, tenant.Id);
+                await _mediator.Send(new SaveImportProcessStateOfUserCommand()
+                {
+                    UserId = userId,
+                    ClientId = tenant.Id,
+                    State = "InProgress",
+                    Time = DateTime.Now,
+                });
 
-				return Ok(new { status = true, message = "Import process started.", SuccessCount = result.Item1, FailedCount = result.Item2 });
-			}
-			catch (Exception ex)
+                var rows = tableData.ToObject<List<COEBulkIdeaModel>>();
+
+                var result = await SaveIdeas(rows, tenant.Id, userId);
+
+                return Ok(new { status = true, message = "Import process started.", SuccessCount = result.Item1, FailedCount = result.Item2 });
+            }
+            catch (Exception ex)
             {
                 return Ok(new { status = false, message = "Some error occurred during Import." });
             }
@@ -122,16 +138,27 @@ namespace SilkFlo.Web.Controllers
         [HttpGet("/Data/Status")]
         public async Task<IActionResult> GetImportStatus()
         {
+            var userId = GetUserId();
             var tenant = await GetClientAsync();
-            return Ok(new
+
+            if (!String.IsNullOrEmpty(userId) && tenant is not null)
             {
-                IsCompleted = ImportStatus.GetValueOrDefault($"{tenant}-Completed"),
-                SuccessCount = ImportStatus.GetValueOrDefault($"{tenant}-SuccessCount"),
-                FailedCount = ImportStatus.GetValueOrDefault($"{tenant}FailedCount"),
-            });
+                return Ok(await _mediator.Send(new GetImportProcessStateOfUserQuery()
+                {
+                    UserId = userId,
+                    ClientId = tenant.Id,
+                }));
+            }
+            else
+            {
+                return Ok(new
+                {
+                    IsSucceed = true
+                });
+            }
         }
 
-        public async Task<(int, int)> SaveIdeas(List<COEBulkIdeaModel> rows, string clientId)
+        public async Task<(int, int)> SaveIdeas(List<COEBulkIdeaModel> rows, string clientId, string userId)
         {
             try
             {
@@ -154,49 +181,48 @@ namespace SilkFlo.Web.Controllers
                         idea.ProcessOwnerId = idea.CreatedById;
                     }
 
-                    idea.Summary = row.Description;
-                    idea.DepartmentId = row.DepartmentId != null ? (await _unitOfWork.BusinessDepartments.SingleOrDefaultAsync(x => x.ClientId == clientId && x.Name == row.DepartmentId.Trim()))?.Id : null;
-                    idea.TeamId = row.TeamId!=null ? (await _unitOfWork.BusinessTeams.SingleOrDefaultAsync(x => x.ClientId == clientId && x.Name == row.TeamId?.Trim())).Id : null;
-                    idea.ProcessId = row.ProcessId !=null ? (await _unitOfWork.BusinessProcesses.SingleOrDefaultAsync(x => x.ClientId == clientId && x.Name == row.ProcessId?.Trim())).Id : null ;
+					idea.Summary = row.Description;
+					idea.DepartmentId = row.Department != null ? (await _unitOfWork.BusinessDepartments.SingleOrDefaultAsync(x => x.ClientId == clientId && x.Name.Trim().ToLower() == row.Department.Trim().ToLower()))?.Id : null;
+					idea.TeamId = row.Team != null ? (await _unitOfWork.BusinessTeams.SingleOrDefaultAsync(x => x.ClientId == clientId && x.Name.Trim().ToLower() == row.Team.Trim().ToLower()))?.Id : null;
+					idea.ProcessId = row.Process != null ? (await _unitOfWork.BusinessProcesses.SingleOrDefaultAsync(x => x.ClientId == clientId && x.Name.Trim().ToLower() == row.Process.Trim().ToLower()))?.Id : null;
+					//idea.DeployeementDate = row.DeployeementDate;   pending
+					idea.RuleId = row.Rule != null ? (await _unitOfWork.SharedRules.GetByNameAsync(row.Rule.Trim().ToLower()))?.Id : null;
+					idea.InputId = row.Input != null ? (await _unitOfWork.SharedInputs.GetByNameAsync(row.Input.Trim().ToLower()))?.Id : null;
+					idea.InputDataStructureId = row.InputDataStructure != null ? (await _unitOfWork.SharedInputDataStructures.GetByNameAsync(row.InputDataStructure.Trim().ToLower()))?.Id : null;
+					idea.ProcessStabilityId = row.ProcessStability != null ? (await _unitOfWork.SharedProcessStabilities.GetByNameAsync(row.ProcessStability.Trim().ToLower()))?.Id : null;
+					idea.DocumentationPresentId = row.DocumentationPresent != null ? (await _unitOfWork.SharedDocumentationPresents.GetByNameAsync(row.DocumentationPresent.Trim().ToLower()))?.Id : null;
+					idea.AutomationGoalId = row.AutomationGoal != null ? (await _unitOfWork.SharedAutomationGoals.GetByNameAsync(row.AutomationGoal.Trim().ToLower()))?.Id : null;
+					idea.ApplicationStabilityId = row.ApplicationStability != null ? (await _unitOfWork.SharedApplicationStabilities.GetByNameAsync(row.ApplicationStability.Trim().ToLower()))?.Id : null;
+					idea.TaskFrequencyId = row.TaskFrequency != null ? (await _unitOfWork.SharedTaskFrequencies.GetByNameAsync(row.TaskFrequency.Trim().ToLower()))?.Id : null;
+					idea.AverageReworkTime = row.AverageReworkTime;
+					idea.ProcessPeakId = row.ProcessPeak != null ? (await _unitOfWork.SharedProcessPeaks.GetByNameAsync(row.ProcessPeak.Trim().ToLower()))?.Id : null;
+					idea.AverageNumberOfStepId = row.AverageNumberOfStep != null ? (await _unitOfWork.SharedAverageNumberOfSteps.GetByNameAsync(row.AverageNumberOfStep.Trim().ToLower()))?.Id : null;
+					idea.NumberOfWaysToCompleteProcessId = row.NumberOfWaysToCompleteProcess != null ? (await _unitOfWork.SharedNumberOfWaysToCompleteProcesses.GetByNameAsync(row.NumberOfWaysToCompleteProcess.Trim().ToLower()))?.Id : null;
+					idea.DataInputPercentOfStructuredId = row.DataInputPercentOfStructured != null ? (await _unitOfWork.SharedDataInputPercentOfStructureds.GetByNameAsync(row.DataInputPercentOfStructured.Trim().ToLower()))?.Id : null;
+					idea.DecisionCountId = row.DecisionCount != null ? (await _unitOfWork.SharedDecisionCounts.GetByNameAsync(row.DecisionCount.Trim().ToLower()))?.Id : null;
+					idea.DecisionDifficultyId = row.DecisionDifficulty != null ? (await _unitOfWork.SharedDecisionDifficulties.GetByNameAsync(row.DecisionDifficulty.Trim().ToLower()))?.Id : null;
+					idea.AverageWorkingDay = row.AverageWorkingDay;
+					idea.AverageEmployeeFullCost = row.AverageEmployeeFullCost;
+					idea.ActivityVolumeAverage = row.ActivityVolumeAverage;
+					idea.EmployeeCount = row.EmployeeCount;
+					idea.AverageErrorRate = row.AverageErrorRate;
+					idea.WorkingHour = row.WorkingHour;
+					idea.AverageProcessingTime = row.AverageProcessingTime;
+					idea.AverageReviewTime = row.AverageReviewTime;
+					idea.AverageWorkToBeReviewed = row.AverageWorkToBeReviewed;
+					idea.PotentialFineAmount = row.PotentialFineAmount;
+					idea.PotentialFineProbability = row.PotentialFineProbability;
+					idea.IsHighRisk = (row.IsHighRisk?.ToLower()) == "yes";
+					idea.IsDataSensitive = (row.IsDataSensitive?.ToLower()) == "yes";
+					idea.IsAlternative = (row.IsAlternative?.ToLower()) == "yes";
+					idea.IsHostUpgrade = (row.IsHostUpgrade?.ToLower()) == "yes";
+					idea.IsDataInputScanned = (row.IsDataInputScanned?.ToLower()) == "yes";
+					idea.SubmissionPathId = "COEUser";
+					idea.ImportStage = row.Stage?.Trim() ?? "";
+					idea.ImportStatus = row.Status?.Trim() ?? "";
 
-                    //idea.DeployeementDate = row.DeployeementDate;   pending
-                    idea.RuleId = row.RuleId !=null ? (await _unitOfWork.SharedRules.GetByNameAsync(row.RuleId))?.Id : null;
-                    idea.InputId = row.InputId!=null ? (await _unitOfWork.SharedInputs.GetByNameAsync(row.InputId))?.Id : null;
-                    idea.InputDataStructureId = row.InputDataStructureId !=null ? (await _unitOfWork.SharedInputDataStructures.GetByNameAsync(row.InputDataStructureId))?.Id : null;
-                    idea.ProcessStabilityId = row.ProcessStabilityId != null ? (await _unitOfWork.SharedProcessStabilities.GetByNameAsync(row.ProcessStabilityId))?.Id : null;
-                    idea.DocumentationPresentId = row.DocumentationPresentId !=null ? (await _unitOfWork.SharedDocumentationPresents.GetByNameAsync(row.DocumentationPresentId))?.Id : null;
-                    idea.AutomationGoalId = row.AutomationGoalId != null ? (await _unitOfWork.SharedAutomationGoals.GetByNameAsync(row.AutomationGoalId))?.Id : null; ///// spelling mistake
-                    idea.ApplicationStabilityId = row.ApplicationStabilityId !=null ? (await _unitOfWork.SharedApplicationStabilities.GetByNameAsync(row.ApplicationStabilityId))?.Id : null;
-                    idea.TaskFrequencyId = row.TaskFrequencyId != null ? (await _unitOfWork.SharedTaskFrequencies.GetByNameAsync(row.TaskFrequencyId))?.Id : null;
-                    idea.AverageReworkTime = row.AverageReworkTime;
-                    idea.ProcessPeakId = row.ProcessPeakId != null ? (await _unitOfWork.SharedProcessPeaks.GetByNameAsync(row.ProcessPeakId))?.Id : null;
-                    idea.AverageNumberOfStepId = row.AverageNumberOfStepId !=null ? (await _unitOfWork.SharedAverageNumberOfSteps.GetByNameAsync(row.AverageNumberOfStepId))?.Id : null;
-                    idea.NumberOfWaysToCompleteProcessId =  row.NumberOfWaysToCompleteProcessId !=null ? (await _unitOfWork.SharedNumberOfWaysToCompleteProcesses.GetByNameAsync(row.NumberOfWaysToCompleteProcessId))?.Id : null;
-                    idea.DataInputPercentOfStructuredId = row.DataInputPercentOfStructuredId !=null ? (await _unitOfWork.SharedDataInputPercentOfStructureds.GetByNameAsync(row.DataInputPercentOfStructuredId))?.Id : null;
-                    idea.DecisionCountId = row.DecisionCountId != null ?(await _unitOfWork.SharedDecisionCounts.GetByNameAsync(row.DecisionCountId))?.Id : null;
-                    idea.DecisionDifficultyId = row.DecisionDifficultyId != null ? (await _unitOfWork.SharedDecisionDifficulties.GetByNameAsync(row.DecisionDifficultyId))?.Id : null;
-                    idea.AverageWorkingDay = row.AverageWorkingDay;
-                    idea.AverageEmployeeFullCost = row.AverageEmployeeFullCost;
-                    idea.ActivityVolumeAverage = row.ActivityVolumeAverage;
-                    idea.EmployeeCount = row.EmployeeCount;
-                    idea.AverageErrorRate = row.AverageErrorRate;
-                    idea.WorkingHour = row.WorkingHour;
-                    idea.AverageProcessingTime = row.AverageProcessingTime;
-                    idea.AverageReviewTime = row.AverageReviewTime;
-                    idea.AverageWorkToBeReviewed = row.AverageWorkToBeReviewed;
-                    idea.PotentialFineAmount = row.PotentialFineAmount;
-                    idea.PotentialFineProbability = row.PotentialFineProbability;
-                    idea.IsHighRisk = (row.IsHighRisk?.ToLower()) == "yes";
-                    idea.IsDataSensitive = (row.IsDataSensitive?.ToLower()) == "yes";
-                    idea.IsAlternative = (row.IsAlternative?.ToLower()) == "yes";
-                    idea.IsHostUpgrade = (row.IsHostUpgrade?.ToLower()) == "yes";
-                    idea.IsDataInputScanned = (row.IsDataInputScanned?.ToLower()) == "yes";
-                    idea.SubmissionPathId = "COEUser";
-                    idea.ImportStage = row.Stage?.Trim() ?? "";
-                    idea.ImportStatus = row.Status?.Trim() ?? "";
-
-                    //TODO: discuss CreatedById
-                    if (string.IsNullOrEmpty(idea.Name) ||
+					//TODO: discuss CreatedById
+					if (string.IsNullOrEmpty(idea.Name) ||
                         string.IsNullOrEmpty(idea.Summary) ||
                         string.IsNullOrEmpty(idea.DepartmentId) ||
                         string.IsNullOrEmpty(idea.RuleId) ||
@@ -229,7 +255,17 @@ namespace SilkFlo.Web.Controllers
                 var failedCount = cores.Count - result.Item2;
                 await SaveIdeasWorkflows(result.Item1);
 
-                return (result.Item2, failedCount);
+				await _mediator.Send(new SaveImportProcessStateOfUserCommand()
+				{
+					UserId = userId,
+					ClientId = clientId,
+					State = "Completed",
+					Time = DateTime.Now,
+                    SuccessCount = result.Item2,
+                    FailedCount = failedCount,
+				});
+
+				return (result.Item2, failedCount);
             }
             catch (Exception ex)
             {
@@ -320,54 +356,54 @@ namespace SilkFlo.Web.Controllers
                     {
                         for (int i = 3; i < dataSet.Tables[0].Rows.Count; i++)
                         {
-                            var fileReader = new COEBulkIdeaModel
-                            {
-                                Name = dataSet.Tables[0].Rows[i].ItemArray[0] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[0]) : string.Empty,
-                                CreatedDate = formattedDate,
-                                SubmitterEmailAddress = dataSet.Tables[0].Rows[i].ItemArray[2] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[2]) : string.Empty,
-                                ProcessOwnerEmailAddress = dataSet.Tables[0].Rows[i].ItemArray[3] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[3]) : string.Empty,
-                                AutomationId = dataSet.Tables[0].Rows[i].ItemArray[4] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[4]) : string.Empty,
-                                Description = dataSet.Tables[0].Rows[i].ItemArray[5] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[5]) : string.Empty,
-                                DepartmentId = dataSet.Tables[0].Rows[i].ItemArray[6] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[6]) : string.Empty,
-                                TeamId = dataSet.Tables[0].Rows[i].ItemArray[7] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[7]) : string.Empty,
-                                ProcessId = dataSet.Tables[0].Rows[i].ItemArray[8] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[8]) : string.Empty,
-                                Stage = dataSet.Tables[0].Rows[i].ItemArray[9] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[9]) : string.Empty,
-                                Status = dataSet.Tables[0].Rows[i].ItemArray[10] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[10]) : string.Empty,
+							var fileReader = new COEBulkIdeaModel
+							{
+								Name = dataSet.Tables[0].Rows[i].ItemArray[0] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[0]) : string.Empty,
+								CreatedDate = formattedDate,
+								SubmitterEmailAddress = dataSet.Tables[0].Rows[i].ItemArray[2] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[2]) : string.Empty,
+								ProcessOwnerEmailAddress = dataSet.Tables[0].Rows[i].ItemArray[3] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[3]) : string.Empty,
+								AutomationId = dataSet.Tables[0].Rows[i].ItemArray[4] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[4]) : string.Empty,
+								Description = dataSet.Tables[0].Rows[i].ItemArray[5] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[5]) : string.Empty,
+								Department = dataSet.Tables[0].Rows[i].ItemArray[6] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[6]) : string.Empty,
+								Team = dataSet.Tables[0].Rows[i].ItemArray[7] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[7]) : string.Empty,
+								Process = dataSet.Tables[0].Rows[i].ItemArray[8] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[8]) : string.Empty,
+								Stage = dataSet.Tables[0].Rows[i].ItemArray[9] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[9]) : string.Empty,
+								Status = dataSet.Tables[0].Rows[i].ItemArray[10] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[10]) : string.Empty,
 								DeployementDate = DateTime.TryParse(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[11]), out DateTime deployementDate) && !string.IsNullOrEmpty(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[11])) ? deployementDate : (DateTime?)null,
-							    RuleId = dataSet.Tables[0].Rows[i].ItemArray[12] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[12]) : string.Empty,
-                                InputId = dataSet.Tables[0].Rows[i].ItemArray[13] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[13]) : string.Empty,
-                                InputDataStructureId = dataSet.Tables[0].Rows[i].ItemArray[14] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[14]) : string.Empty,
-                                ProcessStabilityId = dataSet.Tables[0].Rows[i].ItemArray[15] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[15]) : string.Empty,
-                                DocumentationPresentId = dataSet.Tables[0].Rows[i].ItemArray[16] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[16]) : string.Empty,
-                                AutomationGoalId = dataSet.Tables[0].Rows[i].ItemArray[17] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[17]) : string.Empty,
-                                ApplicationStabilityId = dataSet.Tables[0].Rows[i].ItemArray[18] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[18]) : string.Empty,
+								Rule = dataSet.Tables[0].Rows[i].ItemArray[12] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[12]) : string.Empty,
+								Input = dataSet.Tables[0].Rows[i].ItemArray[13] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[13]) : string.Empty,
+								InputDataStructure = dataSet.Tables[0].Rows[i].ItemArray[14] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[14]) : string.Empty,
+								ProcessStability = dataSet.Tables[0].Rows[i].ItemArray[15] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[15]) : string.Empty,
+								DocumentationPresent = dataSet.Tables[0].Rows[i].ItemArray[16] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[16]) : string.Empty,
+								AutomationGoal = dataSet.Tables[0].Rows[i].ItemArray[17] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[17]) : string.Empty,
+								ApplicationStability = dataSet.Tables[0].Rows[i].ItemArray[18] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[18]) : string.Empty,
 								AverageWorkingDay = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[19]?.ToString(), out int parsedValue) ? parsedValue : (int?)null,
-							    WorkingHour = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[20]?.ToString(), out decimal workingHourResult) ? workingHourResult : (decimal?)null,
-							    AverageEmployeeFullCost = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[21]?.ToString(), out int averageEmployeeFullCostResult) ? averageEmployeeFullCostResult : (int?)null,
-                                EmployeeCount = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[22]?.ToString(), out int employeeCountResult) ? employeeCountResult : (int?)null,
-                                TaskFrequencyId = Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[23]) ?? string.Empty,
-                                ActivityVolumeAverage = dataSet.Tables[0].Rows[i].ItemArray[24] != null ? int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[24].ToString(), out int activityVolumeResult) ? activityVolumeResult : (int?)null : (int?)null,
+								WorkingHour = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[20]?.ToString(), out decimal workingHourResult) ? workingHourResult : (decimal?)null,
+								AverageEmployeeFullCost = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[21]?.ToString(), out int averageEmployeeFullCostResult) ? averageEmployeeFullCostResult : (int?)null,
+								EmployeeCount = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[22]?.ToString(), out int employeeCountResult) ? employeeCountResult : (int?)null,
+								TaskFrequency = Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[23]) ?? string.Empty,
+								ActivityVolumeAverage = dataSet.Tables[0].Rows[i].ItemArray[24] != null ? int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[24].ToString(), out int activityVolumeResult) ? activityVolumeResult : (int?)null : (int?)null,
 								AverageProcessingTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[25]?.ToString(), out decimal avgProcessingTimeResult) ? avgProcessingTimeResult : (decimal?)null,
-							    AverageErrorRate = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[26]?.ToString(), out int averageErrorRateResult) ? averageErrorRateResult : (int?)null,
-							    AverageReviewTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[27]?.ToString(), out decimal averageReviewTimeResult) ? averageReviewTimeResult : (decimal?)null,
-						    	AverageWorkToBeReviewed = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[28]?.ToString(), out decimal averageWorkToBeReviewedResult) ? averageWorkToBeReviewedResult : (decimal?)null,
-						    	AverageReworkTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[29]?.ToString(), out decimal averageReworkTimeResult) ? averageReworkTimeResult : (decimal?)null,
-								ProcessPeakId = dataSet.Tables[0].Rows[i].ItemArray[30]?.ToString() ?? string.Empty,
-                                AverageNumberOfStepId = dataSet.Tables[0].Rows[i].ItemArray[31]?.ToString() ?? string.Empty,
-                                NumberOfWaysToCompleteProcessId = dataSet.Tables[0].Rows[i].ItemArray[32]?.ToString() ?? string.Empty,
-                                DataInputPercentOfStructuredId = dataSet.Tables[0].Rows[i].ItemArray[33]?.ToString() ?? string.Empty,
-                                DecisionCountId = dataSet.Tables[0].Rows[i].ItemArray[34]?.ToString() ?? string.Empty,
-                                DecisionDifficultyId = dataSet.Tables[0].Rows[i].ItemArray[35]?.ToString() ?? string.Empty,
+								AverageErrorRate = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[26]?.ToString(), out int averageErrorRateResult) ? averageErrorRateResult : (int?)null,
+								AverageReviewTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[27]?.ToString(), out decimal averageReviewTimeResult) ? averageReviewTimeResult : (decimal?)null,
+								AverageWorkToBeReviewed = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[28]?.ToString(), out decimal averageWorkToBeReviewedResult) ? averageWorkToBeReviewedResult : (decimal?)null,
+								AverageReworkTime = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[29]?.ToString(), out decimal averageReworkTimeResult) ? averageReworkTimeResult : (decimal?)null,
+								ProcessPeak = dataSet.Tables[0].Rows[i].ItemArray[30]?.ToString() ?? string.Empty,
+								AverageNumberOfStep = dataSet.Tables[0].Rows[i].ItemArray[31]?.ToString() ?? string.Empty,
+								NumberOfWaysToCompleteProcess = dataSet.Tables[0].Rows[i].ItemArray[32]?.ToString() ?? string.Empty,
+								DataInputPercentOfStructured = dataSet.Tables[0].Rows[i].ItemArray[33]?.ToString() ?? string.Empty,
+								DecisionCount = dataSet.Tables[0].Rows[i].ItemArray[34]?.ToString() ?? string.Empty,
+								DecisionDifficulty = dataSet.Tables[0].Rows[i].ItemArray[35]?.ToString() ?? string.Empty,
 								PotentialFineAmount = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[36]?.ToString(), out decimal potentialFineAmountResult) ? potentialFineAmountResult : (decimal?)null,
-							    PotentialFineProbability = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[37]?.ToString(), out decimal potentialFineProbabilityResult) ? potentialFineProbabilityResult : (decimal?)null,
-							    IsHighRisk = dataSet.Tables[0].Rows[i].ItemArray[38]?.ToString() ?? string.Empty,
-                                IsDataSensitive = dataSet.Tables[0].Rows[i].ItemArray[39]?.ToString() ?? string.Empty,
-                                IsAlternative = dataSet.Tables[0].Rows[i].ItemArray[40]?.ToString() ?? string.Empty,
-                                IsHostUpgrade = dataSet.Tables[0].Rows[i].ItemArray[41]?.ToString() ?? string.Empty,
-                                IsDataInputScanned = dataSet.Tables[0].Rows[i].ItemArray[42]?.ToString() ?? string.Empty,
-                            };
+								PotentialFineProbability = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[37]?.ToString(), out decimal potentialFineProbabilityResult) ? potentialFineProbabilityResult : (decimal?)null,
+								IsHighRisk = dataSet.Tables[0].Rows[i].ItemArray[38]?.ToString() ?? string.Empty,
+								IsDataSensitive = dataSet.Tables[0].Rows[i].ItemArray[39]?.ToString() ?? string.Empty,
+								IsAlternative = dataSet.Tables[0].Rows[i].ItemArray[40]?.ToString() ?? string.Empty,
+								IsHostUpgrade = dataSet.Tables[0].Rows[i].ItemArray[41]?.ToString() ?? string.Empty,
+								IsDataInputScanned = dataSet.Tables[0].Rows[i].ItemArray[42]?.ToString() ?? string.Empty,
+							};
 
-                            rows.Add(fileReader);
+							rows.Add(fileReader);
                         }
 
                         if (rows.Any(x => String.IsNullOrEmpty(x.Name)))

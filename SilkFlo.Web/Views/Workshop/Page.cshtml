@@ -1,25 +1,48 @@
 @model SilkFlo.Web.ViewModels.Workshop.Page
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService _authorizationService
 
 <style>
+
 	#tableContainer {
 		max-height: 500px;
 		overflow: auto;
 		position: relative;
 	}
 
-	#Coedatalist td:first-child,
-	#Coedata td:first-child,
-	#Coedatalist td:nth-child(2),
-	#Coedata td:nth-child(2),
-	#Coedata td:last-child,
+	#Coedatalist th:first-child,
 	#Coedatalist th:last-child,
-	#Coedatalist thead tr th,
-	#Coedatalist thead {
-		position: -webkit-sticky;
+	#Coedatalist td:first-child,
+	#Coedatalist th:last-child,
+	#Coedatalist th:nth-last-child(2),
+	#Coedatalist th:nth-last-child(2) {
 		position: sticky;
 		background-color: #ffffff;
-		z-index: 2;
+		/* 		z-index: 2;
+
+	*/
 	}
+
+	#Coedatalist thead {
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		background-color: #ffffff;
+	}
+
+		#Coedatalist td:first-child,
+		#Coedata td:first-child,
+		#Coedatalist td:nth-child(2),
+		#Coedata td:nth-child(2),
+		#Coedata td:last-child,
+		#Coedatalist th:last-child,
+		#Coedatalist thead tr th,
+		#Coedatalist thead {
+			position: -webkit-sticky;
+			position: sticky;
+			background-color: #ffffff;
+		}
+
 
 	#Coedatalist td:first-child,
 	#Coedata td:first-child {
@@ -47,7 +70,19 @@
 		top: 50%;
 		left: 50%;
 	}
+
+
+	#fileuploadloader {
+		border: 16px solid #f3f3f3;
+		border-top: 16px solid #8897A2;
+		border-radius: 50%;
+		width: 30px;
+		animation: spin 1s linear infinite;
+		margin-right: 40px;
+	}
+
 </style>
+
 
 <div class="container silkflo_tile_container" id="workshopContainer">
 	@*Titles*@
@@ -55,14 +90,17 @@
 		<h1>Workshop</h1>
 		<h2>Automation Pipeline</h2>
 
-		<div class="d-flex justify-content-end">
-			<div style="display: inline-block; margin-bottom: 1rem; margin-right: 10px;">
-				<button type="button" class="btn btn-warning" onclick="showImportModal()">
-					<img src="~/Icons/fileuploadicons/excel.png" style="height: 20px" />
-					<span> Import</span>
-				</button>
+		@if ((await _authorizationService.AuthorizeAsync(User, "Manage Tenant Settings")).Succeeded)
+		{
+			<div class="d-flex justify-content-end">
+				<div style="display: inline-block; margin-bottom: 1rem; margin-right: 10px;">
+					<button type="button" class="btn btn-warning" onclick="showImportModal()">
+						<img src="~/Icons/fileuploadicons/excel.png" style="height: 20px" />
+						<span> Import</span>
+					</button>
+				</div>
 			</div>
-		</div>
+		}
 
 		@*Tab Bar*@
 		<div class="silkflo-tab">
@@ -77,9 +115,9 @@
 					elementClass += " active";
 
 				<h3 class="@elementClass"
-					id="@stage"
-					onclick="SilkFlo.ViewModels.Workshop.GetContent ( this );"
-					url="@url">
+				id="@stage"
+				onclick="SilkFlo.ViewModels.Workshop.GetContent ( this );"
+				url="@url">
 					@stageGroup
 				</h3>
 			}
@@ -91,7 +129,7 @@
 		var urlCurrent = $"Workshop/StageGroup/{Model.StageGroup}";
 	}
 	<div id="WorkshopContent"
-		 url="@urlCurrent">
+	url="@urlCurrent">
 		@if (Model.StageGroup == "Deployed")
 		{
 			@await Html.PartialAsync("Workshop/Deployed/_Summary", await Model.PipeLine.GetPipeLineDeployed(Model.Product))
@@ -119,7 +157,8 @@
 				<span style=" padding-left: 120px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 16px;">Move your pipeline data from an Excel spreadsheet into SilkFlo</span>
 				<br />
 
-				<span style=" padding-left: 120px; color:#8E9CA7 ; font-family: 'Poppins', sans-serif; font-size: 16px; margin-top:10px">First, <span style="color: #2F80ED;  cursor: pointer; " id="DownloadTemplate" onclick="DownloadTemplate()">Download</span> our template Excel file.</span>
+
+				<span style=" padding-left: 120px; color:#8E9CA7 ; font-family: 'Poppins', sans-serif; font-size: 16px; margin-top:10px">First, <span style="color: #2F80ED;  cursor: pointer; " id="DownloadTemplate" onclick="DownloadTemplateFile()">Download</span> our template Excel file.</span>
 
 				<div class="col-12" style="margin-top: 25px;">
 					<div id="dropZone" style=" background-color: white; border-color:#ff8a00; margin-inline: auto; margin-top: 0; flex: 0.5; height: 209px; width: 802px;" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
@@ -146,11 +185,14 @@
 				<div class="col-12" style="margin-top: 5px; justify-content: flex-end; display: flex;">
 
 					<button type="button"
+							id="btnTFilesUp"
 							onclick="btnTFilesUpload()"
 							class="btn btn-primary"
 							style="background: #ff8a00; border: 0; width:82px; height:48px; border-radius: 6px; font-size: 19px;margin-right: 45px;">
 						Next
 					</button>
+					<div style="display:none" id="fileuploadloader">
+					</div>
 				</div>
 
 			</form>
@@ -217,15 +259,15 @@
 
 				<div id="tableContainer">
 					<table id="Coedatalist" class="table table-striped dataTable table-bordered">
-						<thead style="position: sticky; top: 0; background-color: #ffffff;">
+						<thead style="position: sticky; top: -1px; background-color: #ffffff;">
 							<tr>
-								<td style="position: sticky; left: 0; background-color: #ffffff;"><strong></strong></td>
+								<td style="position: sticky; background-color: #ffffff;"><strong></strong></td>
 								<td style="position: sticky; left: 10px; background-color: #ffffff;"><strong>Name</strong></td>
 								<td><strong>CreatedDate</strong></td>
 								<td><strong>SubmitterEmailAddress</strong></td>
 								<td><strong>ProcessOwnerEmailAddress</strong></td>
 								<td><strong>AutomationId</strong></td>
-								<td><strong style="padding:300px">Description</strong></td>
+								<td style="display: block; width: 300px;"><strong>Description</strong></td> <!-- Set display to block -->
 								<td><strong>Department</strong></td>
 								<td><strong>Team</strong></td>
 								<td><strong>Process</strong></td>
@@ -323,7 +365,7 @@
 			</div>
 			<br />
 			<div style="width: 50%; height: 6px;  background: linear-gradient(to right,  #2F80ED 50%, #D9DBE9 50%); margin: 20px auto;"></div>
-			<span style="padding-left: 150px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 18px;">This may take some time, feel free to close this window to continue working.</span>
+			<span style="padding-left: 140px; color: #8E9CA7; font-family: 'Poppins', sans-serif; font-size: 18px;">This may take some time, feel free to close this window to continue working.</span>
 			
 			<div>
 				<button type="button"
@@ -372,43 +414,3 @@
 	</div>
 
 </div>
-
-@*data-bs-autohide="false".*@
-<body>
-	<div style="position: fixed; bottom: 0; right:0; margin-bottom:10px; margin-right:10px; z-index: 1050; pointer-events: none;">
-		<div id="tstProgress" class="toast toast-info" data-bs-autohide="false" role="alert" aria-live="assertive" aria-atomic="true">
-			<div class="toast-header">
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" style="color: #189EFF; margin-right:10px;" class="bi bi-info-circle" viewBox="0 0 16 16">
-					<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
-					<path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
-				</svg>
-				<strong class="me-auto" style="color:#52667A">Your ideas are being imported</strong>
-			</div>
-			<div class="toast-body">
-				<div class="progress">
-					<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 50%"></div>
-				</div>
-			</div>
-		</div>
-		<br />
-		<div id="tstSuccess" class="toast toast-success" data-bs-autohide="false" role="alert" aria-live="assertive" aria-atomic="true">
-			<div class="toast-header">
-
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="margin-right:10px;" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-					<path fill="#4ECB71" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-				</svg>
-
-				<strong class="me-auto">Bulk upload successful</strong>
-				<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-			</div>
-			<div id="tstSuccessBody" class="toast-body">
-				<span><b>44</b></span> <strong>ideas have been added!</strong>
-			</div>
-		</div>
-	</div>
-
-</body>
-
-
-
-

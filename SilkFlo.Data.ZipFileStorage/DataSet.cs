@@ -772,13 +772,13 @@ namespace SilkFlo.Data.Persistence
                     if (tableNameAttribute != null)
                     {
 
-                        // Construct the Fetch<T> method using reflection
+                        //// Construct the Fetch<T> method using reflection
                         //MethodInfo fetchMethod = typeof(IDatabase).GetInterfaces()
                         //    .SelectMany(i => i.GetMethods())
                         //    .FirstOrDefault(m => m.Name == "Fetch" && m.IsGenericMethod)
                         //    ?.MakeGenericMethod(type);
 
-                        // Invoke the Fetch<T> method
+                        ////Invoke the Fetch<T> method
                         //var result = fetchMethod?.Invoke(db, null);
 
                         var result = db.Fetch<dynamic>($"SELECT * FROM {tableNameAttribute.Value}");

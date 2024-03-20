@@ -1,17 +1,33 @@
 ﻿/* eslint-disable no-restricted-globals */
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
+
+let isContinueWorking = false;
+
 window.onload = function () {
-    //$('#tstProgress').toast('show');
-    //$('#tstSuccess').toast('show');
+    $.ajax({
+        url: '/Data/Status',
+        type: 'GET',
+        success: function (data) {
+            console.log("STATUS DATA: ", data)
+            if (data) {
+                if (data.isSucceed && data.result.status.toLowerCase() === "completed") {
+                    //clearInterval(intervalId);
+                    //$('#tstProgress').toast('hide');
+                    //$('#tstSuccess').toast('show');
+                    //var tstbody = "<span><b>" + data.result.successCount + "</b></span> <strong>ideas have been added!</strong>" +
+                    //    "<span><b>" + data.result.failedCount + "</b></span> <strong>ideas have been failed!</strong>";
+                    //$("#tstSuccessBody").html(tstbody);
 
-    //$('#tstProgress').toast('hide');
-    //$('#tstSuccess').toast('hide');
-
-    //var toastElement = document.querySelector('.toast');
-    //if (toastElement) {
-    //    toastElement.classList.add('show');
-    //}
+                    //TODO: Add api to set status suspend
+                }
+                else {
+                    $('#tstProgress').toast('show');
+                    getStatus();
+                }
+            }
+        }
+    });
 }
 
 function ContinueWorking() {
@@ -25,22 +41,24 @@ function getStatus() {
             type: 'GET',
             success: function (data) {
                 if (data) {
-                    if (data.isCompleted) {
+                    if (data.isSucceed && data.result.status.toLowerCase() === "completed") {
                         clearInterval(intervalId);
                         $('#tstProgress').toast('hide');
                         $('#tstSuccess').toast('show');
-                        var tstbody = "<span><b>" + data.successCount + "</b></span> <strong>ideas have been added!</strong>" +
-                            "<span><b>" + data.failedCount + "</b></span> <strong>ideas have been failed!</strong>";
+                        var tstbody = "<span><b>" + data.result.successCount + "</b></span> <strong>&nbsp;ideas have been added!</strong> <br />" +
+                            "<span><b>" + data.result.failedCount + "</b></span> <strong>&nbsp;ideas have been failed!</strong>";
                         $("#tstSuccessBody").html(tstbody);
+
+                        $("#ShowResultModal").modal("hide");
                     }
                     else {
                         $('#tstProgress').toast('show');
-                        getStatus();
+                        //getStatus();
                     }
                 }
             }
         });
-    }, 1000);
+    }, 10000);
 }
 
 
@@ -79,14 +97,31 @@ $('#btnCloseFileModal').click(function () {
 
 });
 function closeUploadPipelineModal() {
+    var fileInput = document.getElementById('fileElem');
+    var fileLabel = document.getElementById('fileLabel');
+
+    fileLabel.innerText = "No file selected";
+    fileInput.value = "";
 
     $("#UploadPipelineModal").modal("hide");
 };
 function closeShowUploadPipelineMessageModal() {
+    var fileInput = document.getElementById('fileElem');
+    var fileLabel = document.getElementById('fileLabel');
+
+    fileLabel.innerText = "No file selected";
+    fileInput.value = "";
+
     $("#ShowUploadPipelineMessageModal").modal("hide");
 };
 
 function closeShowDataPipelineModal() {
+    var fileInput = document.getElementById('fileElem');
+    var fileLabel = document.getElementById('fileLabel');
+
+    fileLabel.innerText = "No file selected";
+    fileInput.value = "";
+
     $("#ShowDataPipelineModal").modal("hide");
 };
 function closeShowResultModal() {
@@ -101,17 +136,14 @@ $('#btnCloseResultModal').click(function () {
 
 });
 
-function DownloadTemplate() {
+function DownloadTemplateFile() {
     var baseUrl = window.location.origin;
-
     var filePath = '/IdeaTemplate/IdeasListTemplate.xlsx';
-
     var fullFilePath = baseUrl + filePath;
-
-    var path = fullFilePath;
-
+    var filePath = fullFilePath;
     var link = document.createElement('a');
-    link.href = path;
+
+    link.href = filePath;
     link.download = 'IdeasListTemplate.xlsx';
 
     document.body.appendChild(link);
@@ -129,6 +161,10 @@ function btnTFilesUpload() {
     if (fileInput.files.length === 0) {
         return;
     }
+    else {
+        $('#btnTFilesUp').hide();
+        $('#fileuploadloader').show();
+    }
 
     var formData = new FormData();
     var file = fileInput.files[0];
@@ -143,6 +179,8 @@ function btnTFilesUpload() {
         processData: false,
         success: function (response) {
             if (response.status == true) {
+                $('#fileuploadloader').hide();
+
                 var employeeData = response.data;
                 $("#UploadPipelineModal").modal("hide");
                 $("#EmptyFileText").css("display", "none");
@@ -162,12 +200,12 @@ function btnTFilesUpload() {
                             newRow += '<td  contenteditable="true">' + cellContent + '</td>';
                         }
                     }
-                    newRow += '<td style="text-align: center"><span title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash child-div btnDeleteRow" viewBox="0 0 16 16" style="color:red;"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path></svg></span></td>';
-                    // newRow += '<td><button title="delete" class="btn btn-danger btnDeleteRow" style="background: transparent; border: none; color: red;"><i class="fas fa-trash-alt"></i></button></td>';
-
+                    newRow += '<td style="text-align: center"><span title="Delete" class="btnDeleteRow" style="cursor: pointer; position: relative;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash child-div" viewBox="0 0 16 16" style="color:red;"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path></svg></span ></td >';
                     newRow += '</tr>';
                     $('#Coedata').append(newRow);
                 });
+
+                $('#btnTFilesUp').show();
 
                 $("#ShowUploadPipelineMessageModal").modal("show");
 
@@ -220,21 +258,20 @@ function saveCOEData() {
 
         var name = rowData['Name'];
         var description = rowData['Description'];
-        if (!name.trim()) {
+        if (name === null || name.trim() === '') {
             $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
             hasEmptyNames = true;
         }
+
         else if (tableData.some(item => item['Name'] === name)) {
             $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
             hasDuplicates = true;
         }
 
-
-        else if (!description.trim()) {
+        else if (description === '' || description === null) {
             $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
             hasEmptyDescription = true;
         }
-
 
         else if (description.length > 10000) {
             $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
@@ -297,9 +334,12 @@ function saveCOEData() {
                 $("#SuccessIdeaCounter").text(response.successCount);
                 $("#FailedIdeaCounter").text(response.failedCount);
 
-
-                $("#ShowResultModal").modal("show");
-
+                if (isContinueWorking) {
+                    $("#ShowResultModal").modal("hide");
+                }
+                else {
+                    $("#ShowResultModal").modal("show");
+                }
 
             } else {
                 console.error(response.message);
@@ -341,7 +381,9 @@ function closeModalAndRefreshPage() {
 }
 function continueWorking() {
     $("#ShowDataProcessingModal").modal("hide");
-    console.log("ideas being adding");
+    $('#tstProgress').toast('show');
+    isContinueWorking = true;
+    getStatus();
 }
 
 function FinishPipelinemodals() {

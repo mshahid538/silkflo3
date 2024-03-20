@@ -54,7 +54,7 @@ namespace SilkFlo.Web
 		/// <param name="services"></param>
 		public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+			services.AddControllers();
 
 			//services.AddSwaggerGen(c =>
 			//{
@@ -101,7 +101,7 @@ namespace SilkFlo.Web
 
 
             services.AddScoped<Data.Core.IUnitOfWork, Data.Persistence.UnitOfWork>();
-            
+      
             services
                 .AddMvc(setupAction =>
                 {
@@ -314,7 +314,7 @@ namespace SilkFlo.Web
             {
                 options.ValueCountLimit = 2048;
             });
-        }
+		}
 
 
         /// <summary>
@@ -352,9 +352,9 @@ namespace SilkFlo.Web
             app.UseCookiePolicy();
 
 
-            app.UseAuthentication();
+			app.UseAuthentication();
 
-            app.UseMvc(routes =>
+			app.UseMvc(routes =>
             {
                 routes.MapRoute(
                     name: "area",
@@ -369,12 +369,6 @@ namespace SilkFlo.Web
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
-            //app.UseEndpoints(endpoints =>
-            //{
-            //    endpoints.MapControllerRoute(
-            //        name: "default",
-            //        pattern: "{controller}/{action}/{id?}");
-            //});
 
 #if RELEASE
             ////app.Run(async (context) =>
