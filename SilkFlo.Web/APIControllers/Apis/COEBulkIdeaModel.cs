@@ -47,5 +47,7 @@ namespace SilkFlo.Web.APIControllers.Apis
 		public string? IsAlternative { get; set; }
 		public string? IsHostUpgrade { get; set; }
 		public string? IsDataInputScanned { get; set; }
+		public bool HasError { get; set; }
+		public string ErrorMessage { get; set; }
 	}
 }

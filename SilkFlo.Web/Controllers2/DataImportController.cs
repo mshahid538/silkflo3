@@ -76,6 +76,7 @@ namespace SilkFlo.Web.Controllers
                 #endregion
 
                 List<COEBulkIdeaModel> rows = null;
+				dynamic lookups;
                 if (File.FileName.ToLower().Contains(".xlsx") || File.FileName.ToLower().Contains(".xls"))
                 {
                     //validation
@@ -92,13 +93,14 @@ namespace SilkFlo.Web.Controllers
                     }
 
                     rows = uploadResult.rows;
+					lookups = uploadResult.lookups;
                 }
                 else
                 {
                     return Ok(new { status = false, message = "Invalid File. Please select a valid file format.", });
                 }
 
-                return Ok(new { status = true, message = "Ceo Ideas Added successfully.", data = rows });
+                return Ok(new { status = true, message = "Ceo Ideas Added successfully.", data = rows, lookups });
             }
             catch (Exception ex)
             {
@@ -106,6 +108,30 @@ namespace SilkFlo.Web.Controllers
             }
         }
 
+
+        [HttpPost("Data/Validate")]
+        public async Task<IActionResult> ValidateRows([FromBody] JArray tableData)
+        {
+			var userId = GetUserId();
+			var tenant = await GetClientAsync();
+
+			var rows = tableData.ToObject<List<COEBulkIdeaModel>>();
+
+            foreach(var row in rows)
+            {
+				var hasDuplicateEntry = _unitOfWork.CheckIdeasWithExistingName(new List<string>() { row.Name }, tenant.Id);
+				if (hasDuplicateEntry)
+				{
+					row.HasError = true;
+					row.ErrorMessage = "Some Idea(s) contains duplicate Name.";
+				}
+			}
+
+			if (rows.Any(x => x.HasError == true))
+				return BadRequest(new { message = "Some idea(s) have the duplicate name(s)", data = rows });
+
+            return Ok(new { message = "Validation completed", data = rows });
+		}
 
         [HttpPost("/Data/Save")]
         public async Task<IActionResult> SaveByFile([FromBody] JArray tableData)
@@ -115,7 +141,7 @@ namespace SilkFlo.Web.Controllers
                 var userId = GetUserId();
                 var tenant = await GetClientAsync();
 
-                await _mediator.Send(new SaveImportProcessStateOfUserCommand()
+				await _mediator.Send(new SaveImportProcessStateOfUserCommand()
                 {
                     UserId = userId,
                     ClientId = tenant.Id,
@@ -123,7 +149,7 @@ namespace SilkFlo.Web.Controllers
                     Time = DateTime.Now,
                 });
 
-                var rows = tableData.ToObject<List<COEBulkIdeaModel>>();
+				var rows = tableData.ToObject<List<COEBulkIdeaModel>>();
 
                 var result = await SaveIdeas(rows, tenant.Id, userId);
 
@@ -164,7 +190,7 @@ namespace SilkFlo.Web.Controllers
             {
                 List<Models.Business.Idea> idealist = new List<Models.Business.Idea>();
 
-                foreach (var row in rows)
+				foreach (var row in rows)
                 {
                     var idea = new Models.Business.Idea();
 
@@ -280,39 +306,464 @@ namespace SilkFlo.Web.Controllers
 
             foreach (var idea in ideas)
             {
-                var firstStage = Data.Core.Enumerators.Stage.n01_Assess;
+				Enumerators.Stage ideaStageId = Data.Core.Enumerators.Stage.n01_Assess;
+				if (!String.IsNullOrEmpty(idea.ImportStage) && !String.IsNullOrEmpty(idea.ImportStatus))
+				{
+					if (idea.ImportStage.Equals("Idea", StringComparison.OrdinalIgnoreCase))
+					{
+						ideaStageId = Data.Core.Enumerators.Stage.n00_Idea;
+						var ideaStageObj = new Data.Core.Domain.Business.IdeaStage
+						{
+							Idea = idea,
+							StageId = ideaStageId.ToString(),
+							DateStartEstimate = DateTime.Now,
+							DateStart = DateTime.Now,
+							IsInWorkFlow = true,
+						};
 
-                var date = DateTime.Now;
-                var ideaStage = new Data.Core.Domain.Business.IdeaStage
-                {
-                    Idea = idea,
-                    StageId = firstStage.ToString(),
-                    DateStartEstimate = date,
-                    DateStart = date,
-                    IsInWorkFlow = true,
-                };
+						await _unitOfWork.AddAsync(ideaStageObj);
+						await _unitOfWork.CompleteAsync();
 
-                await _unitOfWork.AddAsync(ideaStage);
-                await _unitOfWork.CompleteAsync();
+						var statusId = Data.Core.Enumerators.IdeaStatus.n00_Idea_AwaitingReview.ToString();
+						if (idea.ImportStatus.Equals("Duplicate", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n01_Idea_Duplicate.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Rejected", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n02_Idea_Rejected.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Archived", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n03_Idea_Archived.ToString();
+						}
+
+						var ideaStageStatusObj = new Data.Core.Domain.Business.IdeaStageStatus
+						{
+							IdeaStageId = ideaStageObj.Id,
+							StatusId = statusId,
+							Date = DateTime.Now
+						};
+						await _unitOfWork.AddAsync(ideaStageStatusObj);
+						await _unitOfWork.CompleteAsync();
+					}
+					if (idea.ImportStage.Equals("Assess", StringComparison.OrdinalIgnoreCase))
+					{
+						ideaStageId = Data.Core.Enumerators.Stage.n01_Assess;
+						var ideaStageObj = new Data.Core.Domain.Business.IdeaStage
+						{
+							Idea = idea,
+							StageId = ideaStageId.ToString(),
+							DateStartEstimate = DateTime.Now,
+							DateStart = DateTime.Now,
+							IsInWorkFlow = true,
+						};
+
+						await _unitOfWork.AddAsync(ideaStageObj);
+						await _unitOfWork.CompleteAsync();
+
+						var statusId = Data.Core.Enumerators.IdeaStatus.n04_Assess_AwaitingReview.ToString();
+						if (idea.ImportStatus.Equals("NotStarted", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n05_Assess_NotStarted.ToString();
+						}
+						else if (idea.ImportStatus.Equals("InProgress", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n06_Assess_InProgress.ToString();
+						}
+						else if (idea.ImportStatus.Equals("OnHold", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n07_Assess_OnHold.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Postponed", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n08_Assess_Postponed.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Rejected", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n09_Assess_Rejected.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Archived", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n10_Assess_Archived.ToString();
+						}
+
+						var ideaStageStatusObj = new Data.Core.Domain.Business.IdeaStageStatus
+						{
+							IdeaStageId = ideaStageObj.Id,
+							StatusId = statusId,
+							Date = DateTime.Now
+						};
+						await _unitOfWork.AddAsync(ideaStageStatusObj);
+						await _unitOfWork.CompleteAsync();
+					}
+					if (idea.ImportStage.Equals("Qualify", StringComparison.OrdinalIgnoreCase))
+					{
+						ideaStageId = Data.Core.Enumerators.Stage.n02_Qualify;
+						var ideaStageObj = new Data.Core.Domain.Business.IdeaStage
+						{
+							Idea = idea,
+							StageId = ideaStageId.ToString(),
+							DateStartEstimate = DateTime.Now,
+							DateStart = DateTime.Now,
+							IsInWorkFlow = true,
+						};
+
+						await _unitOfWork.AddAsync(ideaStageObj);
+						await _unitOfWork.CompleteAsync();
+
+						var statusId = Data.Core.Enumerators.IdeaStatus.n04_Assess_AwaitingReview.ToString();
+						if (idea.ImportStatus.Equals("NotStarted", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n05_Assess_NotStarted.ToString();
+						}
+						else if (idea.ImportStatus.Equals("InProgress", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n06_Assess_InProgress.ToString();
+						}
+						else if (idea.ImportStatus.Equals("OnHold", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n07_Assess_OnHold.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Postponed", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n08_Assess_Postponed.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Rejected", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n09_Assess_Rejected.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Archived", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n10_Assess_Archived.ToString();
+						}
+
+						var ideaStageStatusObj = new Data.Core.Domain.Business.IdeaStageStatus
+						{
+							IdeaStageId = ideaStageObj.Id,
+							StatusId = statusId,
+							Date = DateTime.Now
+						};
+						await _unitOfWork.AddAsync(ideaStageStatusObj);
+						await _unitOfWork.CompleteAsync();
+					}
+					if (idea.ImportStage.Equals("Analysis", StringComparison.OrdinalIgnoreCase))
+					{
+						ideaStageId = Data.Core.Enumerators.Stage.n03_Analysis;
+						var ideaStageObj = new Data.Core.Domain.Business.IdeaStage
+						{
+							Idea = idea,
+							StageId = ideaStageId.ToString(),
+							DateStartEstimate = DateTime.Now,
+							DateStart = DateTime.Now,
+							IsInWorkFlow = true,
+						};
+
+						await _unitOfWork.AddAsync(ideaStageObj);
+						await _unitOfWork.CompleteAsync();
+
+						var statusId = Data.Core.Enumerators.IdeaStatus.n16_Analysis_NotStarted.ToString();
+						if (idea.ImportStatus.Equals("NotStarted", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n16_Analysis_NotStarted.ToString();
+						}
+						else if (idea.ImportStatus.Equals("InProgress", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n17_Analysis_InProgress.ToString();
+						}
+						else if (idea.ImportStatus.Equals("OnHold", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n18_Analysis_OnHold.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Cancelled", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n19_Analysis_Cancelled.ToString();
+						}
+						else if (idea.ImportStatus.Equals("AtRisk", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n20_Analysis_AtRisk.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Delayed", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n21_Analysis_Delayed.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n22_Analysis_Completed.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Archived", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n23_Analysis_Archived.ToString();
+						}
+
+						var ideaStageStatusObj = new Data.Core.Domain.Business.IdeaStageStatus
+						{
+							IdeaStageId = ideaStageObj.Id,
+							StatusId = statusId,
+							Date = DateTime.Now
+						};
+						await _unitOfWork.AddAsync(ideaStageStatusObj);
+						await _unitOfWork.CompleteAsync();
+					}
+					if (idea.ImportStage.Equals("SolutionDesign", StringComparison.OrdinalIgnoreCase))
+					{
+						ideaStageId = Data.Core.Enumerators.Stage.n04_SolutionDesign;
+						var ideaStageObj = new Data.Core.Domain.Business.IdeaStage
+						{
+							Idea = idea,
+							StageId = ideaStageId.ToString(),
+							DateStartEstimate = DateTime.Now,
+							DateStart = DateTime.Now,
+							IsInWorkFlow = true,
+						};
+
+						await _unitOfWork.AddAsync(ideaStageObj);
+						await _unitOfWork.CompleteAsync();
+
+						var statusId = Data.Core.Enumerators.IdeaStatus.n24_SolutionDesign_NotStarted.ToString();
+						if (idea.ImportStatus.Equals("NotStarted", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n24_SolutionDesign_NotStarted.ToString();
+						}
+						else if (idea.ImportStatus.Equals("InProgress", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n25_SolutionDesign_InProgress.ToString();
+						}
+						else if (idea.ImportStatus.Equals("OnHold", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n26_SolutionDesign_OnHold.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Cancelled", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n27_SolutionDesign_Cancelled.ToString();
+						}
+						else if (idea.ImportStatus.Equals("AtRisk", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n28_SolutionDesign_AtRisk.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Delayed", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n29_SolutionDesign_Delayed.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n30_SolutionDesign_Completed.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Archived", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n31_SolutionDesign_Archived.ToString();
+						}
+
+						var ideaStageStatusObj = new Data.Core.Domain.Business.IdeaStageStatus
+						{
+							IdeaStageId = ideaStageObj.Id,
+							StatusId = statusId,
+							Date = DateTime.Now
+						};
+						await _unitOfWork.AddAsync(ideaStageStatusObj);
+						await _unitOfWork.CompleteAsync();
+					}
+					if (idea.ImportStage.Equals("Development", StringComparison.OrdinalIgnoreCase))
+					{
+						ideaStageId = Data.Core.Enumerators.Stage.n05_Development;
+						var ideaStageObj = new Data.Core.Domain.Business.IdeaStage
+						{
+							Idea = idea,
+							StageId = ideaStageId.ToString(),
+							DateStartEstimate = DateTime.Now,
+							DateStart = DateTime.Now,
+							IsInWorkFlow = true,
+						};
+
+						await _unitOfWork.AddAsync(ideaStageObj);
+						await _unitOfWork.CompleteAsync();
+
+						var statusId = Data.Core.Enumerators.IdeaStatus.n32_Development_NotStarted.ToString();
+						if (idea.ImportStatus.Equals("NotStarted", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n32_Development_NotStarted.ToString();
+						}
+						else if (idea.ImportStatus.Equals("InProgress", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n33_Development_InProgress.ToString();
+						}
+						else if (idea.ImportStatus.Equals("OnHold", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n34_Development_OnHold.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Cancelled", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n35_Development_Cancelled.ToString();
+						}
+						else if (idea.ImportStatus.Equals("AtRisk", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n36_Development_AtRisk.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Delayed", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n37_Development_Delayed.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n38_Development_Completed.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Archived", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n39_Development_Archived.ToString();
+						}
+
+						var ideaStageStatusObj = new Data.Core.Domain.Business.IdeaStageStatus
+						{
+							IdeaStageId = ideaStageObj.Id,
+							StatusId = statusId,
+							Date = DateTime.Now
+						};
+						await _unitOfWork.AddAsync(ideaStageStatusObj);
+						await _unitOfWork.CompleteAsync();
+					}
+					if (idea.ImportStage.Equals("Testing", StringComparison.OrdinalIgnoreCase))
+					{
+						ideaStageId = Data.Core.Enumerators.Stage.n06_Testing;
+						var ideaStageObj = new Data.Core.Domain.Business.IdeaStage
+						{
+							Idea = idea,
+							StageId = ideaStageId.ToString(),
+							DateStartEstimate = DateTime.Now,
+							DateStart = DateTime.Now,
+							IsInWorkFlow = true,
+						};
+
+						await _unitOfWork.AddAsync(ideaStageObj);
+						await _unitOfWork.CompleteAsync();
+
+						var statusId = Data.Core.Enumerators.IdeaStatus.n40_Testing_NotStarted.ToString();
+						if (idea.ImportStatus.Equals("NotStarted", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n40_Testing_NotStarted.ToString();
+						}
+						else if (idea.ImportStatus.Equals("InProgress", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n41_Testing_InProgress.ToString();
+						}
+						else if (idea.ImportStatus.Equals("OnHold", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n42_Testing_OnHold.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Cancelled", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n43_Testing_Cancelled.ToString();
+						}
+						else if (idea.ImportStatus.Equals("AtRisk", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n44_Testing_AtRisk.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Delayed", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n45_Testing_Delayed.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n46_Testing_Completed.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Archived", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n47_Testing_Archived.ToString();
+						}
+
+						var ideaStageStatusObj = new Data.Core.Domain.Business.IdeaStageStatus
+						{
+							IdeaStageId = ideaStageObj.Id,
+							StatusId = statusId,
+							Date = DateTime.Now
+						};
+						await _unitOfWork.AddAsync(ideaStageStatusObj);
+						await _unitOfWork.CompleteAsync();
+					}
+					if (idea.ImportStage.Equals("Deployed", StringComparison.OrdinalIgnoreCase))
+					{
+						ideaStageId = Data.Core.Enumerators.Stage.n07_Deployed;
+						var ideaStageObj = new Data.Core.Domain.Business.IdeaStage
+						{
+							Idea = idea,
+							StageId = ideaStageId.ToString(),
+							DateStartEstimate = DateTime.Now,
+							DateStart = DateTime.Now,
+							IsInWorkFlow = true,
+						};
+
+						await _unitOfWork.AddAsync(ideaStageObj);
+						await _unitOfWork.CompleteAsync();
+
+						var statusId = Data.Core.Enumerators.IdeaStatus.n48_Deployed_ReadyForProduction.ToString();
+						if (idea.ImportStatus.Equals("ReadyForProduction", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n32_Development_NotStarted.ToString();
+						}
+						else if (idea.ImportStatus.Equals("HyperCare", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n49_Deployed_HyperCare.ToString();
+						}
+						else if (idea.ImportStatus.Equals("OnHold", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n50_Deployed_OnHold.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Cancelled", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n35_Development_Cancelled.ToString();
+						}
+						else if (idea.ImportStatus.Equals("InProduction", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n51_Deployed_InProduction.ToString();
+						}
+						else if (idea.ImportStatus.Equals("Archived", StringComparison.OrdinalIgnoreCase))
+						{
+							statusId = Data.Core.Enumerators.IdeaStatus.n52_Deployed_Archived.ToString();
+						}
+
+						var ideaStageStatusObj = new Data.Core.Domain.Business.IdeaStageStatus
+						{
+							IdeaStageId = ideaStageObj.Id,
+							StatusId = statusId,
+							Date = DateTime.Now
+						};
+						await _unitOfWork.AddAsync(ideaStageStatusObj);
+						await _unitOfWork.CompleteAsync();
+					}
+				}
+				else
+				{
+					ideaStageId = Data.Core.Enumerators.Stage.n01_Assess;
+					var ideaStage = new Data.Core.Domain.Business.IdeaStage
+					{
+						Idea = idea,
+						StageId = ideaStageId.ToString(),
+						DateStartEstimate = DateTime.Now,
+						DateStart = DateTime.Now,
+						IsInWorkFlow = true,
+					};
+
+					await _unitOfWork.AddAsync(ideaStage);
+					await _unitOfWork.CompleteAsync();
 
 
-                var ideaStageStatus = new Data.Core.Domain.Business.IdeaStageStatus
-                {
-                    IdeaStageId = ideaStage.Id,
-                    StatusId = Data.Core.Enumerators.IdeaStatus.n04_Assess_AwaitingReview.ToString(),
-                    Date = date
-                };
-                await _unitOfWork.AddAsync(ideaStageStatus);
-                await _unitOfWork.CompleteAsync();
+					var ideaStageStatus = new Data.Core.Domain.Business.IdeaStageStatus
+					{
+						IdeaStageId = ideaStage.Id,
+						StatusId = Data.Core.Enumerators.IdeaStatus.n04_Assess_AwaitingReview.ToString(),
+						Date = DateTime.Now
+					};
+					await _unitOfWork.AddAsync(ideaStageStatus);
+					await _unitOfWork.CompleteAsync();
+				}
 
-                var stages = (await _unitOfWork.SharedStages.FindAsync(x => x.Id != firstStage.ToString())).ToArray();
-                if (firstStage == Data.Core.Enumerators.Stage.n01_Assess)
-                    stages = stages.Where(x => x.Id != Data.Core.Enumerators.Stage.n00_Idea.ToString()).ToArray();
+                var stages = (await _unitOfWork.SharedStages.FindAsync(x => x.Id != ideaStageId.ToString())).ToArray();
+                //if (ideaStageId == Data.Core.Enumerators.Stage.n01_Assess)
+                //    stages = stages.Where(x => x.Id != Data.Core.Enumerators.Stage.n00_Idea.ToString()).ToArray();
 
                 var now = DateTime.Now;
                 foreach (var stage in stages)
                 {
-                    ideaStage = new Data.Core.Domain.Business.IdeaStage
+                    var remainingIdeaStage = new Data.Core.Domain.Business.IdeaStage
                     {
                         Idea = idea,
                         DateStartEstimate = now,
@@ -320,14 +771,14 @@ namespace SilkFlo.Web.Controllers
                     };
 
                     now = now.AddSeconds(1);
-                    await _unitOfWork.AddAsync(ideaStage);
+                    await _unitOfWork.AddAsync(remainingIdeaStage);
                 }
                 await _unitOfWork.CompleteAsync();
             }
         }
 
 
-        public async Task<(bool success, string message, List<COEBulkIdeaModel> rows)> UploadCeoExcelFile(IFormFile file)
+        public async Task<(bool success, string message, List<COEBulkIdeaModel> rows, dynamic lookups)> UploadCeoExcelFile(IFormFile file)
         {
 			var tenant = await GetClientAsync();
 			List<COEBulkIdeaModel> rows = new List<COEBulkIdeaModel>();
@@ -349,13 +800,13 @@ namespace SilkFlo.Web.Controllers
                     DateTime CreatedDate = DateTime.Now;
                     string formattedDate = CreatedDate.ToString("yyyy-MM-dd");
 
-                    if ((dataSet.Tables[0].Rows[1].ItemArray[0].ToString() == "Name of Automation*") &&
-                         (dataSet.Tables[0].Rows[1].ItemArray[1].ToString() == "Date Submitted") &&
-                          (dataSet.Tables[0].Rows[1].ItemArray[2].ToString() == "Submitter's Email Address *") &&
-                            (dataSet.Tables[0].Rows[1].ItemArray[5].ToString() == "Description *"))
-                    {
-                        for (int i = 3; i < dataSet.Tables[0].Rows.Count; i++)
-                        {
+					if ((dataSet.Tables[0].Rows[1].ItemArray[0].ToString() == "Name of Automation*") &&
+						 (dataSet.Tables[0].Rows[1].ItemArray[1].ToString() == "Date Submitted") &&
+						  (dataSet.Tables[0].Rows[1].ItemArray[2].ToString() == "Submitter's Email Address *") &&
+							(dataSet.Tables[0].Rows[1].ItemArray[5].ToString() == "Description *"))
+					{
+						for (int i = 3; i < dataSet.Tables[0].Rows.Count; i++)
+						{
 							var fileReader = new COEBulkIdeaModel
 							{
 								Name = dataSet.Tables[0].Rows[i].ItemArray[0] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[0]) : string.Empty,
@@ -400,33 +851,69 @@ namespace SilkFlo.Web.Controllers
 								IsDataSensitive = dataSet.Tables[0].Rows[i].ItemArray[39]?.ToString() ?? string.Empty,
 								IsAlternative = dataSet.Tables[0].Rows[i].ItemArray[40]?.ToString() ?? string.Empty,
 								IsHostUpgrade = dataSet.Tables[0].Rows[i].ItemArray[41]?.ToString() ?? string.Empty,
-								IsDataInputScanned = dataSet.Tables[0].Rows[i].ItemArray[42]?.ToString() ?? string.Empty,
+								IsDataInputScanned = dataSet.Tables[0].Rows[i].ItemArray[42]?.ToString() ?? string.Empty
 							};
 
+							if (String.IsNullOrWhiteSpace(fileReader.Name))
+							{
+								fileReader.HasError = true;
+								fileReader.ErrorMessage = "Idea contain invalid or empty Name. Please click on 'Name' column to edit.";
+							}
+
+							if (fileReader.Name.Length > 100)
+							{
+								fileReader.HasError = true;
+								fileReader.ErrorMessage = "Idea exceeds name limit, it should be 100 characters max. Please click on 'Name' column to edit.";
+							}
+
+							if (String.IsNullOrEmpty(fileReader.Description))
+							{
+								fileReader.HasError = true;
+								fileReader.ErrorMessage = "Idea contain invalid or empty Description. Please click on 'Description' column to edit.";
+							}
+
+							if (fileReader.Description.Length > 10000)
+							{
+								fileReader.HasError = true;
+								fileReader.ErrorMessage = "Idea exceeds description limit, it should be 10000 characters max. Please click on 'Description' column to edit.";
+							}
+
+							var hasDuplicateEntry = _unitOfWork.CheckIdeasWithExistingName(new List<string>() { fileReader.Name }, tenant.Id);
+							if (hasDuplicateEntry)
+							{
+								fileReader.HasError = true;
+								fileReader.ErrorMessage = "Idea contains duplicate Name. Please click on 'Name' column to edit.";
+							}
+
 							rows.Add(fileReader);
-                        }
+						}
 
-                        if (rows.Any(x => String.IsNullOrEmpty(x.Name)))
-                            return (false, "Some Idea(s) contain invalid or empty name.", rows);
+						var lookups = new {
+							DepartmentOptions = await _unitOfWork.BusinessDepartments.GetAllAsync(),
+							TeamOptions = await _unitOfWork.BusinessTeams.GetAllAsync(),
+							ProcessOptions = await _unitOfWork.BusinessProcesses.GetAllAsync(),
+							RuleOptions = await _unitOfWork.SharedRules.GetAllAsync(),
+							InputOptions = await _unitOfWork.SharedInputs.GetAllAsync(),
+							InputDataStructureOptions = await _unitOfWork.SharedInputDataStructures.GetAllAsync(),
+							ProcessStabilityOptions = await _unitOfWork.SharedProcessStabilities.GetAllAsync(),
+							DocumentationPresentOptions = await _unitOfWork.SharedDocumentationPresents.GetAllAsync(),
+							AutomationGoalOptions = await _unitOfWork.SharedAutomationGoals.GetAllAsync(),
+							ApplicationStabilityOptions = await _unitOfWork.SharedApplicationStabilities.GetAllAsync(),
+							TaskFrequencyOptions = await _unitOfWork.SharedTaskFrequencies.GetAllAsync(),
+							ProcessPeakOptions = await _unitOfWork.SharedProcessPeaks.GetAllAsync(),
+							AverageNumberOfStepOptions = await _unitOfWork.SharedAverageNumberOfSteps.GetAllAsync(),
+							NumberOfWaysToCompleteProcessOptions = await _unitOfWork.SharedNumberOfWaysToCompleteProcesses.GetAllAsync(),
+							DataInputPercentOfStructuredOptions = await _unitOfWork.SharedDataInputPercentOfStructureds.GetAllAsync(),
+							DecisionCountOptions = await _unitOfWork.SharedDecisionCounts.GetAllAsync(),
+							DecisionDifficultyOptions = await _unitOfWork.SharedDecisionDifficulties.GetAllAsync(),
+						};
 
-                        if (rows.Any(x => x.Name.Length > 100))
-                            return (false, "Some Idea(s) exceeds name limit, it should be 100 characters max.", rows);
-
-                        if (rows.Any(x => String.IsNullOrEmpty(x.Description)))
-                            return (false, "Some Idea(s) contain invalid or empty description.", rows);
-
-                        if (rows.Any(x => x.Description.Length > 10000))
-                            return (false, "Some Idea(s) exceeds description limit, it should be 10000 characters max.", rows);
-
-                        if (_unitOfWork.CheckIdeasWithExistingName(rows.Select(x => x.Name).ToList(), tenant.Id))
-                            return (false, "Some Idea(s) contains duplicate Name.", rows);
-
-                        return (true, "Upload successful.", rows);
+						return (true, "Upload successful.", rows, lookups);
 
                     }
                     else
                     {
-                        return (false, "Incorrect format detected. Please download our template, add your ideas, and try again.", new List<COEBulkIdeaModel>());
+                        return (false, "Incorrect format detected. Please download our template, add your ideas, and try again.", new List<COEBulkIdeaModel>(), null);
                     }
                 }
             }

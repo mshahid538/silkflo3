@@ -189,21 +189,68 @@ function btnTFilesUpload() {
 
                 $('#Coedata').empty();
                 var x = 1;
-
+                var isValidRows = false;
                 $.each(employeeData, function (index, row) {
                     var newRow = '<tr>';
-                    newRow += '<td>' + x + '</td>';
+
+                    if (row.hasError) {
+                        isValidRows = true;
+                        newRow = `<tr data-toggle="tooltip" data-placement="top" title="${row.errorMessage}" style="background-color: rgb(255, 228, 225)">`;
+                    }
+
+                    if (row.hasError) {
+                        newRow += '<td style="background-color: rgb(255, 228, 225)">' + x + '</td>';
+                    }
+                    else {
+                        newRow += '<td>' + x + '</td>';
+                    }
+                    
                     x++;
                     for (var prop in row) {
                         if (row.hasOwnProperty(prop)) {
                             var cellContent = (row[prop] === null) ? "" : row[prop];
-                            newRow += '<td  contenteditable="true">' + cellContent + '</td>';
+
+                            if (row.hasError) {
+                                newRow += '<td  contenteditable="true" style="background-color: rgb(255, 228, 225)">' + cellContent + '</td>';
+                            }
+                            else {
+                                newRow += '<td  contenteditable="true">' + cellContent + '</td>';
+                            }
                         }
                     }
-                    newRow += '<td style="text-align: center"><span title="Delete" class="btnDeleteRow" style="cursor: pointer; position: relative;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash child-div" viewBox="0 0 16 16" style="color:red;"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path></svg></span ></td >';
+
+                    if (row.hasError) {
+                        newRow += '<td style="text-align: center; background-color: rgb(255, 228, 225);"><span title="Delete" class="btnDeleteRow" style="cursor: pointer; position: relative;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash child-div" viewBox="0 0 16 16" style="color:red;"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path></svg></span ></td >';
+                    }
+                    else {
+                        newRow += '<td style="text-align: center"><span title="Delete" class="btnDeleteRow" style="cursor: pointer; position: relative;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash child-div" viewBox="0 0 16 16" style="color:red;"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path></svg></span ></td >';
+                    }
+
                     newRow += '</tr>';
-                    $('#Coedata').append(newRow);
+
+                    //let parser = new DOMParser();
+                    //let doc = parser.parseFromString(newRow, 'text/html');
+                    //let trs = doc.querySelector('tr');
+                    //let tdss = trs.querySelectorAll('td');
+
+                    //// Remove the last two td elements
+                    //for (let i = tdss.length - 1; i >= tdss.length - 2; i--) {
+                    //    trs.removeChild(tdss[i]);
+                    //}
+
+                    // Convert the modified tr back to a string
+                    let modifiedStr = newRow.replace(/(?:<td>.*<\/td>){2}$/, '');;
+
+                    $('#Coedata').append(modifiedStr);
                 });
+
+                document.querySelectorAll('#Coedata tr td:nth-last-child(2), #Coedata tr td:nth-last-child(3)')
+                    .forEach(column => column.style.display = 'none');
+
+                if (isValidRows) {
+                    $("#duplicateIdeasText").text("Some row(s) contain(s) error(s), hover on highlighted rows to see the exact error message. Once resolved, please click on Start Import.").css("display", "block");
+                }
+
 
                 $('#btnTFilesUp').show();
 
@@ -262,11 +309,10 @@ function saveCOEData() {
             $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
             hasEmptyNames = true;
         }
-
-        else if (tableData.some(item => item['Name'] === name)) {
-            $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
-            hasDuplicates = true;
-        }
+        //else if (tableData.some(item => item['Name'] === name)) {
+        //    $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
+        //    hasDuplicates = true;
+        //}
 
         else if (description === '' || description === null) {
             $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
@@ -323,30 +369,98 @@ function saveCOEData() {
 
     $.ajax({
         type: 'POST',
-        url: '/Data/Save',
+        url: '/Data/Validate',
         data: JSON.stringify(tableData),
         contentType: 'application/json',
         success: function (response) {
-            if (response.status == true) {
-                $("#ShowDataProcessingModal").modal("hide");
+            $.ajax({
+                type: 'POST',
+                url: '/Data/Save',
+                data: JSON.stringify(response.data),
+                contentType: 'application/json',
+                success: function (response) {
+                    if (response.status == true) {
+                        $("#ShowDataProcessingModal").modal("hide");
 
-                $('#loading-overlay').hide();
-                $("#SuccessIdeaCounter").text(response.successCount);
-                $("#FailedIdeaCounter").text(response.failedCount);
+                        $('#loading-overlay').hide();
+                        $("#SuccessIdeaCounter").text(response.successCount);
+                        $("#FailedIdeaCounter").text(response.failedCount);
 
-                if (isContinueWorking) {
-                    $("#ShowResultModal").modal("hide");
+                        if (isContinueWorking) {
+                            $("#ShowResultModal").modal("hide");
+                        }
+                        else {
+                            $("#ShowResultModal").modal("show");
+                        }
+                    } else {
+                        console.error(response.message);
+                    }
+                },
+                error: function (error) {
+                    //hideLoading();
+                    console.log(error);
                 }
-                else {
-                    $("#ShowResultModal").modal("show");
-                }
-
-            } else {
-                console.error(response.message);
-            }
+            });
         },
         error: function (error) {
-            hideLoading();
+            var employeeData = error.responseJSON.data;
+            //$("#UploadPipelineModal").modal("hide");
+            //$("#EmptyFileText").css("display", "none");
+            //$("#duplicateIdeasText").css("display", "none");
+            //$("#InvalidFileTemplate").css("display", "none");
+            $('#Coedata').empty();
+
+            var x = 1;
+            var isValidRows = false;
+            $.each(employeeData, function (index, row) {
+                var newRow = '<tr>';
+                if (row.hasError) {
+                    isValidRows = true;
+                    newRow = `<tr data-toggle="tooltip" data-placement="top" title="${row.errorMessage}" style="background-color: rgb(255, 228, 225)">`;
+                }
+                if (row.hasError) {
+                    newRow += '<td style="background-color: rgb(255, 228, 225)">' + x + '</td>';
+                }
+                else {
+                    newRow += '<td>' + x + '</td>';
+                }
+
+                x++;
+
+                for (var prop in row) {
+                    if (row.hasOwnProperty(prop)) {
+                        var cellContent = (row[prop] === null) ? "" : row[prop];
+                        if (row.hasError) {
+                            newRow += '<td  contenteditable="true" style="background-color: rgb(255, 228, 225)">' + cellContent + '</td>';
+                        }
+                        else {
+                            newRow += '<td  contenteditable="true">' + cellContent + '</td>';
+                        }
+                    }
+                }
+
+                if (row.hasError) {
+                    newRow += '<td style="text-align: center; background-color: rgb(255, 228, 225);"><span title="Delete" class="btnDeleteRow" style="cursor: pointer; position: relative;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash child-div" viewBox="0 0 16 16" style="color:red;"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path></svg></span ></td >';
+                }
+                else {
+                    newRow += '<td style="text-align: center"><span title="Delete" class="btnDeleteRow" style="cursor: pointer; position: relative;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash child-div" viewBox="0 0 16 16" style="color:red;"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path></svg></span ></td >';
+                }
+
+                newRow += '</tr>';
+                $('#Coedata').append(newRow);
+            });
+
+            document.querySelectorAll('#Coedata tr td:nth-last-child(2), #Coedata tr td:nth-last-child(3)')
+                .forEach(column => column.style.display = 'none');
+
+            if (isValidRows) {
+                $("#duplicateIdeasText").text("Some row(s) contain(s) error(s), hover on highlighted rows to see the exact error message. Once resolved, please click on Start Import.").css("display", "block");
+            }
+
+            $("#ShowDataProcessingModal").hide(); //.modal("hide");
+
+            $("#ShowDataPipelineModal").modal("show");
+            //hideLoading();
 
             console.log(error);
         }
