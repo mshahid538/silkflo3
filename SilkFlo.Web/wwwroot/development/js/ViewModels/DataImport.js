@@ -182,6 +182,7 @@ function btnTFilesUpload() {
                 $('#fileuploadloader').hide();
 
                 var employeeData = response.data;
+                var look = response.look;
                 $("#UploadPipelineModal").modal("hide");
                 $("#EmptyFileText").css("display", "none");
                 $("#duplicateIdeasText").css("display", "none");
@@ -209,15 +210,28 @@ function btnTFilesUpload() {
                     for (var prop in row) {
                         if (row.hasOwnProperty(prop)) {
                             var cellContent = (row[prop] === null) ? "" : row[prop];
+                            if (look.hasOwnProperty(prop)) {
+                                // Generate dropdown options
+                                var options = look[prop].map(option => `<option value="${option.id}">${option.name}</option>`).join('');
 
-                            if (row.hasError) {
-                                newRow += '<td  contenteditable="true" style="background-color: rgb(255, 228, 225)">' + cellContent + '</td>';
+                                if (row.hasError) {
+                                    newRow += `<td style="background-color: rgb(255, 228, 225)"><select contenteditable="true">${options}</select></td>`;
+                                }
+                                else {
+                                    newRow += `<td style="contenteditable="true"><select>${options}</select></td>`;
+                                }
                             }
                             else {
-                                newRow += '<td  contenteditable="true">' + cellContent + '</td>';
+                                if (row.hasError) {
+                                    newRow += `<td contenteditable="true" style="background-color: rgb(255, 228, 225)">${cellContent}</td>`;
+                                }
+                                else {
+                                    newRow += `<td contenteditable="true">${cellContent}</td>`;
+                                }
                             }
                         }
                     }
+
 
                     if (row.hasError) {
                         newRow += '<td style="text-align: center; background-color: rgb(255, 228, 225);"><span title="Delete" class="btnDeleteRow" style="cursor: pointer; position: relative;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash child-div" viewBox="0 0 16 16" style="color:red;"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path></svg></span ></td >';

@@ -100,7 +100,7 @@ namespace SilkFlo.Web.Controllers
                     return Ok(new { status = false, message = "Invalid File. Please select a valid file format.", });
                 }
 
-                return Ok(new { status = true, message = "Ceo Ideas Added successfully.", data = rows, lookups });
+                return Ok(new { status = true, message = "Ceo Ideas Added successfully.", data = rows, look=lookups });
             }
             catch (Exception ex)
             {
@@ -889,23 +889,23 @@ namespace SilkFlo.Web.Controllers
 						}
 
 						var lookups = new {
-							DepartmentOptions = await _unitOfWork.BusinessDepartments.GetAllAsync(),
-							TeamOptions = await _unitOfWork.BusinessTeams.GetAllAsync(),
-							ProcessOptions = await _unitOfWork.BusinessProcesses.GetAllAsync(),
-							RuleOptions = await _unitOfWork.SharedRules.GetAllAsync(),
-							InputOptions = await _unitOfWork.SharedInputs.GetAllAsync(),
-							InputDataStructureOptions = await _unitOfWork.SharedInputDataStructures.GetAllAsync(),
-							ProcessStabilityOptions = await _unitOfWork.SharedProcessStabilities.GetAllAsync(),
-							DocumentationPresentOptions = await _unitOfWork.SharedDocumentationPresents.GetAllAsync(),
-							AutomationGoalOptions = await _unitOfWork.SharedAutomationGoals.GetAllAsync(),
-							ApplicationStabilityOptions = await _unitOfWork.SharedApplicationStabilities.GetAllAsync(),
-							TaskFrequencyOptions = await _unitOfWork.SharedTaskFrequencies.GetAllAsync(),
-							ProcessPeakOptions = await _unitOfWork.SharedProcessPeaks.GetAllAsync(),
-							AverageNumberOfStepOptions = await _unitOfWork.SharedAverageNumberOfSteps.GetAllAsync(),
-							NumberOfWaysToCompleteProcessOptions = await _unitOfWork.SharedNumberOfWaysToCompleteProcesses.GetAllAsync(),
-							DataInputPercentOfStructuredOptions = await _unitOfWork.SharedDataInputPercentOfStructureds.GetAllAsync(),
-							DecisionCountOptions = await _unitOfWork.SharedDecisionCounts.GetAllAsync(),
-							DecisionDifficultyOptions = await _unitOfWork.SharedDecisionDifficulties.GetAllAsync(),
+							Department = await _unitOfWork.BusinessDepartments.GetAllAsync(),
+							Team = await _unitOfWork.BusinessTeams.GetAllAsync(),
+							Process = await _unitOfWork.BusinessProcesses.GetAllAsync(),
+							Rule = await _unitOfWork.SharedRules.GetAllAsync(),
+							Input = await _unitOfWork.SharedInputs.GetAllAsync(),
+							InputDataStructure = await _unitOfWork.SharedInputDataStructures.GetAllAsync(),
+							ProcessStability = await _unitOfWork.SharedProcessStabilities.GetAllAsync(),
+							DocumentationPresent = await _unitOfWork.SharedDocumentationPresents.GetAllAsync(),
+							AutomationGoal = await _unitOfWork.SharedAutomationGoals.GetAllAsync(),
+							ApplicationStability = await _unitOfWork.SharedApplicationStabilities.GetAllAsync(),
+							TaskFrequency = await _unitOfWork.SharedTaskFrequencies.GetAllAsync(),
+							ProcessPeak = await _unitOfWork.SharedProcessPeaks.GetAllAsync(),
+							AverageNumberOfStep = await _unitOfWork.SharedAverageNumberOfSteps.GetAllAsync(),
+							NumberOfWaysToCompleteProcess = await _unitOfWork.SharedNumberOfWaysToCompleteProcesses.GetAllAsync(),
+							DataInputPercentOfStructured = await _unitOfWork.SharedDataInputPercentOfStructureds.GetAllAsync(),
+							DecisionCount = await _unitOfWork.SharedDecisionCounts.GetAllAsync(),
+							DecisionDifficulty = await _unitOfWork.SharedDecisionDifficulties.GetAllAsync(),
 						};
 
 						return (true, "Upload successful.", rows, lookups);
