@@ -207,26 +207,56 @@ namespace SilkFlo.Web.Controllers
                         idea.ProcessOwnerId = idea.CreatedById;
                     }
 
-					idea.Summary = row.Description;
-					idea.DepartmentId = row.Department != null ? (await _unitOfWork.BusinessDepartments.SingleOrDefaultAsync(x => x.ClientId == clientId && x.Name.Trim().ToLower() == row.Department.Trim().ToLower()))?.Id : null;
-					idea.TeamId = row.Team != null ? (await _unitOfWork.BusinessTeams.SingleOrDefaultAsync(x => x.ClientId == clientId && x.Name.Trim().ToLower() == row.Team.Trim().ToLower()))?.Id : null;
-					idea.ProcessId = row.Process != null ? (await _unitOfWork.BusinessProcesses.SingleOrDefaultAsync(x => x.ClientId == clientId && x.Name.Trim().ToLower() == row.Process.Trim().ToLower()))?.Id : null;
+
+
+					//idea.DepartmentId = row.Department != null ? (await _unitOfWork.BusinessDepartments.SingleOrDefaultAsync(x => x.ClientId == clientId && x.Name.Trim().ToLower() == row.Department.Trim().ToLower()))?.Id : null;
+					//idea.TeamId = row.Team != null ? (await _unitOfWork.BusinessTeams.SingleOrDefaultAsync(x => x.ClientId == clientId && x.Name.Trim().ToLower() == row.Team.Trim().ToLower()))?.Id : null;
+
+					//idea.ProcessId = row.Process != null ? (await _unitOfWork.BusinessProcesses.SingleOrDefaultAsync(x => x.ClientId == clientId && x.Name.Trim().ToLower() == row.Process.Trim().ToLower()))?.Id : null;
 					//idea.DeployeementDate = row.DeployeementDate;   pending
-					idea.RuleId = row.Rule != null ? (await _unitOfWork.SharedRules.GetByNameAsync(row.Rule.Trim().ToLower()))?.Id : null;
-					idea.InputId = row.Input != null ? (await _unitOfWork.SharedInputs.GetByNameAsync(row.Input.Trim().ToLower()))?.Id : null;
-					idea.InputDataStructureId = row.InputDataStructure != null ? (await _unitOfWork.SharedInputDataStructures.GetByNameAsync(row.InputDataStructure.Trim().ToLower()))?.Id : null;
-					idea.ProcessStabilityId = row.ProcessStability != null ? (await _unitOfWork.SharedProcessStabilities.GetByNameAsync(row.ProcessStability.Trim().ToLower()))?.Id : null;
-					idea.DocumentationPresentId = row.DocumentationPresent != null ? (await _unitOfWork.SharedDocumentationPresents.GetByNameAsync(row.DocumentationPresent.Trim().ToLower()))?.Id : null;
-					idea.AutomationGoalId = row.AutomationGoal != null ? (await _unitOfWork.SharedAutomationGoals.GetByNameAsync(row.AutomationGoal.Trim().ToLower()))?.Id : null;
-					idea.ApplicationStabilityId = row.ApplicationStability != null ? (await _unitOfWork.SharedApplicationStabilities.GetByNameAsync(row.ApplicationStability.Trim().ToLower()))?.Id : null;
-					idea.TaskFrequencyId = row.TaskFrequency != null ? (await _unitOfWork.SharedTaskFrequencies.GetByNameAsync(row.TaskFrequency.Trim().ToLower()))?.Id : null;
+					//idea.RuleId = row.Rule != null ? (await _unitOfWork.SharedRules.GetByNameAsync(row.Rule.Trim().ToLower()))?.Id : null;
+					//idea.InputId = row.Input != null ? (await _unitOfWork.SharedInputs.GetByNameAsync(row.Input.Trim().ToLower()))?.Id : null;
+					//idea.InputDataStructureId = row.InputDataStructure != null ? (await _unitOfWork.SharedInputDataStructures.GetByNameAsync(row.InputDataStructure.Trim().ToLower()))?.Id : null;
+					//idea.ProcessStabilityId = row.ProcessStability != null ? (await _unitOfWork.SharedProcessStabilities.GetByNameAsync(row.ProcessStability.Trim().ToLower()))?.Id : null;
+					//idea.DocumentationPresentId = row.DocumentationPresent != null ? (await _unitOfWork.SharedDocumentationPresents.GetByNameAsync(row.DocumentationPresent.Trim().ToLower()))?.Id : null;
+
+					//idea.AutomationGoalId = row.AutomationGoal != null ? (await _unitOfWork.SharedAutomationGoals.GetByNameAsync(row.AutomationGoal.Trim().ToLower()))?.Id : null;
+
+					//idea.ApplicationStabilityId = row.ApplicationStability != null ? (await _unitOfWork.SharedApplicationStabilities.GetByNameAsync(row.ApplicationStability.Trim().ToLower()))?.Id : null;
+
+					//idea.TaskFrequencyId = row.TaskFrequency != null ? (await _unitOfWork.SharedTaskFrequencies.GetByNameAsync(row.TaskFrequency.Trim().ToLower()))?.Id : null;
+					//idea.ProcessPeakId = row.ProcessPeak != null ? (await _unitOfWork.SharedProcessPeaks.GetByNameAsync(row.ProcessPeak.Trim().ToLower()))?.Id : null;
+					//idea.AverageNumberOfStepId = row.AverageNumberOfStep != null ? (await _unitOfWork.SharedAverageNumberOfSteps.GetByNameAsync(row.AverageNumberOfStep.Trim().ToLower()))?.Id : null;
+					//idea.NumberOfWaysToCompleteProcessId = row.NumberOfWaysToCompleteProcess != null ? (await _unitOfWork.SharedNumberOfWaysToCompleteProcesses.GetByNameAsync(row.NumberOfWaysToCompleteProcess.Trim().ToLower()))?.Id : null;
+					//idea.DataInputPercentOfStructuredId = row.DataInputPercentOfStructured != null ? (await _unitOfWork.SharedDataInputPercentOfStructureds.GetByNameAsync(row.DataInputPercentOfStructured.Trim().ToLower()))?.Id : null;
+					//idea.DecisionCountId = row.DecisionCount != null ? (await _unitOfWork.SharedDecisionCounts.GetByNameAsync(row.DecisionCount.Trim().ToLower()))?.Id : null;
+					//idea.DecisionDifficultyId = row.DecisionDifficulty != null ? (await _unitOfWork.SharedDecisionDifficulties.GetByNameAsync(row.DecisionDifficulty.Trim().ToLower()))?.Id : null;
+
+
+
+
+
+
+
+					idea.Summary = row.Description;
+					idea.DepartmentId = row.Department;
+					idea.TeamId = row.Team;
+					idea.ProcessId = row.Process;
+					idea.RuleId = row.Rule;
+					idea.InputId = row.Input;
+					idea.InputDataStructureId = row.InputDataStructure;
+					idea.ProcessStabilityId = row.ProcessStability;
+					idea.DocumentationPresentId = row.DocumentationPresent;
+					idea.AutomationGoalId = row.AutomationGoal;
+					idea.ApplicationStabilityId = row.ApplicationStability;
+					idea.TaskFrequencyId = row.TaskFrequency;
 					idea.AverageReworkTime = row.AverageReworkTime;
-					idea.ProcessPeakId = row.ProcessPeak != null ? (await _unitOfWork.SharedProcessPeaks.GetByNameAsync(row.ProcessPeak.Trim().ToLower()))?.Id : null;
-					idea.AverageNumberOfStepId = row.AverageNumberOfStep != null ? (await _unitOfWork.SharedAverageNumberOfSteps.GetByNameAsync(row.AverageNumberOfStep.Trim().ToLower()))?.Id : null;
-					idea.NumberOfWaysToCompleteProcessId = row.NumberOfWaysToCompleteProcess != null ? (await _unitOfWork.SharedNumberOfWaysToCompleteProcesses.GetByNameAsync(row.NumberOfWaysToCompleteProcess.Trim().ToLower()))?.Id : null;
-					idea.DataInputPercentOfStructuredId = row.DataInputPercentOfStructured != null ? (await _unitOfWork.SharedDataInputPercentOfStructureds.GetByNameAsync(row.DataInputPercentOfStructured.Trim().ToLower()))?.Id : null;
-					idea.DecisionCountId = row.DecisionCount != null ? (await _unitOfWork.SharedDecisionCounts.GetByNameAsync(row.DecisionCount.Trim().ToLower()))?.Id : null;
-					idea.DecisionDifficultyId = row.DecisionDifficulty != null ? (await _unitOfWork.SharedDecisionDifficulties.GetByNameAsync(row.DecisionDifficulty.Trim().ToLower()))?.Id : null;
+					idea.ProcessPeakId = row.ProcessPeak;
+					idea.AverageNumberOfStepId = row.AverageNumberOfStep;
+					idea.NumberOfWaysToCompleteProcessId = row.NumberOfWaysToCompleteProcess;
+					idea.DataInputPercentOfStructuredId = row.DataInputPercentOfStructured;
+					idea.DecisionCountId = row.DecisionCount;
+					idea.DecisionDifficultyId = row.DecisionDifficulty;
 					idea.AverageWorkingDay = row.AverageWorkingDay;
 					idea.AverageEmployeeFullCost = row.AverageEmployeeFullCost;
 					idea.ActivityVolumeAverage = row.ActivityVolumeAverage;

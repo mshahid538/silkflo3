@@ -212,25 +212,29 @@ function btnTFilesUpload() {
                             var cellContent = (row[prop] === null) ? "" : row[prop];
                             if (look.hasOwnProperty(prop)) {
                                 // Generate dropdown options
-                                var options = look[prop].map(option => `<option value="${option.id}">${option.name}</option>`).join('');
+                                var options = look[prop].map(option => {
+                                    if (option.name === cellContent) {
+                                        return `<option value="${option.id}" selected>${option.name}</option>`;
+                                    } else {
+                                        return `<option value="${option.id}">${option.name}</option>`;
+                                    }
+                                }).join('');
 
                                 if (row.hasError) {
                                     newRow += `<td style="background-color: rgb(255, 228, 225)"><select contenteditable="true">${options}</select></td>`;
+                                } else {
+                                    newRow += `<td contenteditable="true"><select>${options}</select></td>`;
                                 }
-                                else {
-                                    newRow += `<td style="contenteditable="true"><select>${options}</select></td>`;
-                                }
-                            }
-                            else {
+                            } else {
                                 if (row.hasError) {
                                     newRow += `<td contenteditable="true" style="background-color: rgb(255, 228, 225)">${cellContent}</td>`;
-                                }
-                                else {
+                                } else {
                                     newRow += `<td contenteditable="true">${cellContent}</td>`;
                                 }
                             }
                         }
                     }
+
 
 
                     if (row.hasError) {
@@ -295,6 +299,8 @@ function saveCOEData() {
     $("#EmptyFileText").css("display", "none");
 
     var tableData = [];
+    var selectedDropdownValues = [];
+
 
     var hasDuplicates = false;
     var hasEmptyNames = false;
@@ -313,6 +319,20 @@ function saveCOEData() {
             var columnName = $("#Coedatalist thead tr td").eq(index).text();
 
             var cellValue = $(this).text();
+
+            debugger
+
+            // Check if the cell contains a dropdown
+            var $select = $(this).find('select');
+            if ($select.length > 0) {
+                var selectedValue = $select.val(); // Get the selected value
+                // If a value is selected, add it to the array
+                if (selectedValue !== null) {
+                    selectedDropdownValues.push(selectedValue);
+                }
+                // Assign selected value to cellValue for mapping
+                cellValue = selectedValue;
+            }
 
             rowData[columnName] = cellValue;
         });
