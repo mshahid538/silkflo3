@@ -17,6 +17,7 @@ using System.Threading;
 using MediatR;
 using Silkflo.API.Services.ImportProcessState.Commands;
 using Silkflo.API.Services.ImportProcessState.Queries;
+using SilkFlo.Data.Core.Domain.Shared;
 
 namespace SilkFlo.Web.Controllers
 {
@@ -241,7 +242,7 @@ namespace SilkFlo.Web.Controllers
 					idea.Summary = row.Description;
 					idea.DepartmentId = row.Department;
 					idea.TeamId = row.Team;
-					idea.ProcessId = row.Process;
+					idea.ProcessId = row.SubArea;
 					idea.RuleId = row.Rule;
 					idea.InputId = row.Input;
 					idea.InputDataStructureId = row.InputDataStructure;
@@ -847,7 +848,7 @@ namespace SilkFlo.Web.Controllers
 								Description = dataSet.Tables[0].Rows[i].ItemArray[5] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[5]) : string.Empty,
 								Department = dataSet.Tables[0].Rows[i].ItemArray[6] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[6]) : string.Empty,
 								Team = dataSet.Tables[0].Rows[i].ItemArray[7] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[7]) : string.Empty,
-								Process = dataSet.Tables[0].Rows[i].ItemArray[8] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[8]) : string.Empty,
+								SubArea = dataSet.Tables[0].Rows[i].ItemArray[8] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[8]) : string.Empty,
 								Stage = dataSet.Tables[0].Rows[i].ItemArray[9] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[9]) : string.Empty,
 								Status = dataSet.Tables[0].Rows[i].ItemArray[10] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[10]) : string.Empty,
 								DeployementDate = DateTime.TryParse(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[11]), out DateTime deployementDate) && !string.IsNullOrEmpty(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[11])) ? deployementDate : (DateTime?)null,
@@ -921,7 +922,7 @@ namespace SilkFlo.Web.Controllers
 						var lookups = new {
 							Department = await _unitOfWork.BusinessDepartments.GetAllAsync(),
 							Team = await _unitOfWork.BusinessTeams.GetAllAsync(),
-							Process = await _unitOfWork.BusinessProcesses.GetAllAsync(),
+							SubArea = await _unitOfWork.BusinessProcesses.GetAllAsync(),
 							Rule = await _unitOfWork.SharedRules.GetAllAsync(),
 							Input = await _unitOfWork.SharedInputs.GetAllAsync(),
 							InputDataStructure = await _unitOfWork.SharedInputDataStructures.GetAllAsync(),
@@ -936,6 +937,8 @@ namespace SilkFlo.Web.Controllers
 							DataInputPercentOfStructured = await _unitOfWork.SharedDataInputPercentOfStructureds.GetAllAsync(),
 							DecisionCount = await _unitOfWork.SharedDecisionCounts.GetAllAsync(),
 							DecisionDifficulty = await _unitOfWork.SharedDecisionDifficulties.GetAllAsync(),
+						    Stage = await _unitOfWork.SharedStages.GetAllAsync(),
+						    Status = await _unitOfWork.SharedIdeaStatuses.GetAllAsync(),
 						};
 
 						return (true, "Upload successful.", rows, lookups);

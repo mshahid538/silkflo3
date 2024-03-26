@@ -212,28 +212,30 @@ function btnTFilesUpload() {
                             var cellContent = (row[prop] === null) ? "" : row[prop];
                             if (look.hasOwnProperty(prop)) {
                                 // Generate dropdown options
-                                var options = look[prop].map(option => {
-                                    if (option.name === cellContent) {
-                                        return `<option value="${option.id}" selected>${option.name}</option>`;
-                                    } else {
-                                        return `<option value="${option.id}">${option.name}</option>`;
-                                    }
-                                }).join('');
+                                var options = '';
+                                if (look[prop].length > 0) {
+                                    options = look[prop].map(option => {
+                                        return `<option value="${option.id}" ${option.name === cellContent ? 'selected' : ''}>${option.name}</option>`;
+                                    }).join('');
+                                }
 
-                                if (row.hasError) {
-                                    newRow += `<td style="background-color: rgb(255, 228, 225)"><select contenteditable="true">${options}</select></td>`;
-                                } else {
-                                    newRow += `<td contenteditable="true"><select>${options}</select></td>`;
-                                }
+                                newRow += `<td contenteditable="true"><select><option value=""></option>${options}</select></td>`;
                             } else {
-                                if (row.hasError) {
-                                    newRow += `<td contenteditable="true" style="background-color: rgb(255, 228, 225)">${cellContent}</td>`;
-                                } else {
-                                    newRow += `<td contenteditable="true">${cellContent}</td>`;
-                                }
+                                newRow += `<td contenteditable="true">${cellContent}</td>`;
                             }
                         }
                     }
+
+
+
+
+
+                   
+
+
+
+
+
 
 
 
@@ -297,6 +299,13 @@ function saveCOEData() {
     $("#exceedDescriptionText").css("display", "none");
     $("#exceedNameText").css("display", "none");
     $("#EmptyFileText").css("display", "none");
+    $("#emptySubAreaText").css("display", "none");
+    $("#emptyTeamText").css("display", "none"); 
+    $("#emptyDepartmentText").css("display", "none");
+
+    var hasEmptySubArea = false; 
+    var hasEmptyTeam = false; 
+    var hasEmptyDepartment = false; 
 
     var tableData = [];
     var selectedDropdownValues = [];
@@ -339,6 +348,28 @@ function saveCOEData() {
 
         var name = rowData['Name'];
         var description = rowData['Description'];
+        var SubArea = rowData['SubArea']; 
+        var Team = rowData['Team']; 
+        var Department = rowData['Department']; 
+
+        if (SubArea === null || SubArea.trim() === '') {
+            $row.find('td:nth-child(3)').addBack().css('background-color', 'rgb(255, 228, 225)');
+            hasEmptySubArea = true;
+        }
+
+        if (Team === null || Team.trim() === '') { 
+            $row.find('td:nth-child(4)').addBack().css('background-color', 'rgb(255, 228, 225)');
+            hasEmptyTeam = true;
+        }
+
+        if (Department === null || Department.trim() === '') { 
+            $row.find('td:nth-child(5)').addBack().css('background-color', 'rgb(255, 228, 225)');
+            hasEmptyDepartment = true;
+        }
+
+
+
+
         if (name === null || name.trim() === '') {
             $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
             hasEmptyNames = true;
@@ -393,6 +424,20 @@ function saveCOEData() {
 
     else if (exceedNameLength) {
         $("#exceedNameText").css("display", exceedNameLength ? "block" : "none");
+        return;
+    }
+    if (hasEmptySubArea) {
+        $("#emptySubAreaText").css("display", "block"); 
+        return;
+    }
+
+    if (hasEmptyTeam) {
+        $("#emptyTeamText").css("display", "block");
+        return;
+    }
+
+    if (hasEmptyDepartment) {
+        $("#emptyDepartmentText").css("display", "block");
         return;
     }
 
