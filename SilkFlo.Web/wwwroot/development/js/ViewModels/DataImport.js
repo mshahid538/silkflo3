@@ -215,12 +215,18 @@ function btnTFilesUpload() {
                                 var options = '';
                                 if (look[prop].length > 0) {
                                     options = look[prop].map(option => {
-                                        return `<option value="${option.id}" ${option.name === cellContent ? 'selected' : ''}>${option.name}</option>`;
+                                        return `<option value="${option.id}" ${option.name.toLowerCase() === cellContent.toLowerCase() ? 'selected' : ''}>${option.name}</option>`;
                                     }).join('');
                                 }
 
+
                                 newRow += `<td contenteditable="true"><select><option value=""></option>${options}</select></td>`;
                             } else {
+
+                                if (prop === "createdDate") {
+                                    cellContent = cellContent.replace(/T00:00:00/, '');
+                                }
+
                                 newRow += `<td contenteditable="true">${cellContent}</td>`;
                             }
                         }
@@ -316,36 +322,38 @@ function saveCOEData() {
     var hasEmptyDescription = false;
     var exceedNameLength = false;
     var exceedDescriptionLength = false;
-
+    var hasEmptyMandatoryCell = false;
 
     $("#Coedatalist tbody tr").each(function () {
         var rowData = {};
         var $row = $(this);
-
         $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', '');
-
         $row.find('td').each(function (index) {
             var columnName = $("#Coedatalist thead tr td").eq(index).text();
 
             var cellValue = $(this).text();
-
-            debugger
-
-            // Check if the cell contains a dropdown
             var $select = $(this).find('select');
             if ($select.length > 0) {
-                var selectedValue = $select.val(); // Get the selected value
-                // If a value is selected, add it to the array
+                var selectedValue = $select.val(); 
                 if (selectedValue !== null) {
                     selectedDropdownValues.push(selectedValue);
                 }
-                // Assign selected value to cellValue for mapping
                 cellValue = selectedValue;
             }
 
             rowData[columnName] = cellValue;
+
+
+            var mandatoryCells = ["Name","Description","SubmitterEmailAddress", "Department", "Rule", "InputDateType", "InputDataStructure", "ProcessStability", "DocumentationPresent", "ApplicationStability"];
+            if (mandatoryCells.includes(columnName) && (cellValue === null || cellValue.trim() === '')) {
+                $row.css('background-color', 'pink');
+                $(this).css('border', '1px solid red');
+                $(this).attr('title', 'This Field Is Mandatory');
+                hasEmptyMandatoryCell = true;
+            }
         });
 
+      
         var name = rowData['Name'];
         var description = rowData['Description'];
         var SubArea = rowData['SubArea']; 
@@ -397,8 +405,15 @@ function saveCOEData() {
         tableData.push(rowData);
     });
 
+    
+
+
     if (tableData.length == 0) {
         $("#EmptyFileText").css("display", "block");
+        return;
+    }
+
+   else if (hasEmptyMandatoryCell) {
         return;
     }
 

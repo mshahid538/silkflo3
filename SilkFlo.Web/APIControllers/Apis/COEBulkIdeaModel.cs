@@ -5,7 +5,7 @@ namespace SilkFlo.Web.APIControllers.Apis
 	public class COEBulkIdeaModel
 	{
 		public string? Name { get; set; }
-		public string? CreatedDate { get; set; }
+		public DateTime? CreatedDate { get; set; }
 		public string? SubmitterEmailAddress { get; set; }
 		public string? ProcessOwnerEmailAddress { get; set; }
 		public string? AutomationId { get; set; }
@@ -17,7 +17,7 @@ namespace SilkFlo.Web.APIControllers.Apis
 		public string? Status { get; set; }  
 		public DateTime? DeployementDate { get; set; } 
 		public string? Rule { get; set; }
-		public string? Input { get; set; }
+		public string? InputDateType { get; set; }
 		public string? InputDataStructure { get; set; }
 		public string? ProcessStability { get; set; }
 		public string? DocumentationPresent { get; set; }

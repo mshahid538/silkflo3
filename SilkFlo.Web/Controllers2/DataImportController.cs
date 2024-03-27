@@ -196,7 +196,7 @@ namespace SilkFlo.Web.Controllers
                     var idea = new Models.Business.Idea();
 
                     idea.Name = row.Name;
-                    idea.CreatedDate = DateTime.Now;
+                    idea.CreatedDate = row.CreatedDate;
                     idea.CreatedById = (await _unitOfWork.Users.GetUsingEmailAsync(row.SubmitterEmailAddress?.Trim()))?.Id;
 
                     idea.ProcessOwnerId = string.IsNullOrWhiteSpace(row.ProcessOwnerEmailAddress?.Trim())
@@ -237,6 +237,7 @@ namespace SilkFlo.Web.Controllers
 
 
 
+					//idea.DeployeementDate = row.DeployementDate;
 
 
 					idea.Summary = row.Description;
@@ -244,7 +245,7 @@ namespace SilkFlo.Web.Controllers
 					idea.TeamId = row.Team;
 					idea.ProcessId = row.SubArea;
 					idea.RuleId = row.Rule;
-					idea.InputId = row.Input;
+					idea.InputId = row.InputDateType;
 					idea.InputDataStructureId = row.InputDataStructure;
 					idea.ProcessStabilityId = row.ProcessStability;
 					idea.DocumentationPresentId = row.DocumentationPresent;
@@ -841,8 +842,9 @@ namespace SilkFlo.Web.Controllers
 							var fileReader = new COEBulkIdeaModel
 							{
 								Name = dataSet.Tables[0].Rows[i].ItemArray[0] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[0]) : string.Empty,
-								CreatedDate = formattedDate,
-								SubmitterEmailAddress = dataSet.Tables[0].Rows[i].ItemArray[2] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[2]) : string.Empty,
+								//CreatedDate = DateTime.TryParse(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[1]), out DateTime createdDate) && !string.IsNullOrEmpty(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[1])) ? createdDate : (DateTime?)null,
+								CreatedDate = DateTime.TryParse(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[1]), out DateTime parsedDate) ? (DateTime?)parsedDate.Date : (DateTime?)null,
+							    SubmitterEmailAddress = dataSet.Tables[0].Rows[i].ItemArray[2] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[2]) : string.Empty,
 								ProcessOwnerEmailAddress = dataSet.Tables[0].Rows[i].ItemArray[3] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[3]) : string.Empty,
 								AutomationId = dataSet.Tables[0].Rows[i].ItemArray[4] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[4]) : string.Empty,
 								Description = dataSet.Tables[0].Rows[i].ItemArray[5] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[5]) : string.Empty,
@@ -853,11 +855,11 @@ namespace SilkFlo.Web.Controllers
 								Status = dataSet.Tables[0].Rows[i].ItemArray[10] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[10]) : string.Empty,
 								DeployementDate = DateTime.TryParse(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[11]), out DateTime deployementDate) && !string.IsNullOrEmpty(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[11])) ? deployementDate : (DateTime?)null,
 								Rule = dataSet.Tables[0].Rows[i].ItemArray[12] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[12]) : string.Empty,
-								Input = dataSet.Tables[0].Rows[i].ItemArray[13] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[13]) : string.Empty,
+								InputDateType = dataSet.Tables[0].Rows[i].ItemArray[13] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[13]) : string.Empty,
 								InputDataStructure = dataSet.Tables[0].Rows[i].ItemArray[14] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[14]) : string.Empty,
 								ProcessStability = dataSet.Tables[0].Rows[i].ItemArray[15] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[15]) : string.Empty,
-								DocumentationPresent = dataSet.Tables[0].Rows[i].ItemArray[16] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[16]) : string.Empty,
-								AutomationGoal = dataSet.Tables[0].Rows[i].ItemArray[17] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[17]) : string.Empty,
+								DocumentationPresent = !string.IsNullOrWhiteSpace(Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[16])) ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[16]) : "No",
+							    AutomationGoal = dataSet.Tables[0].Rows[i].ItemArray[17] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[17]) : string.Empty,
 								ApplicationStability = dataSet.Tables[0].Rows[i].ItemArray[18] != null ? Convert.ToString(dataSet.Tables[0].Rows[i].ItemArray[18]) : string.Empty,
 								AverageWorkingDay = int.TryParse(dataSet.Tables[0].Rows[i].ItemArray[19]?.ToString(), out int parsedValue) ? parsedValue : (int?)null,
 								WorkingHour = decimal.TryParse(dataSet.Tables[0].Rows[i].ItemArray[20]?.ToString(), out decimal workingHourResult) ? workingHourResult : (decimal?)null,
@@ -924,7 +926,7 @@ namespace SilkFlo.Web.Controllers
 							Team = await _unitOfWork.BusinessTeams.GetAllAsync(),
 							SubArea = await _unitOfWork.BusinessProcesses.GetAllAsync(),
 							Rule = await _unitOfWork.SharedRules.GetAllAsync(),
-							Input = await _unitOfWork.SharedInputs.GetAllAsync(),
+							InputDateType = await _unitOfWork.SharedInputs.GetAllAsync(),
 							InputDataStructure = await _unitOfWork.SharedInputDataStructures.GetAllAsync(),
 							ProcessStability = await _unitOfWork.SharedProcessStabilities.GetAllAsync(),
 							DocumentationPresent = await _unitOfWork.SharedDocumentationPresents.GetAllAsync(),
