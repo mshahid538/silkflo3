@@ -218,9 +218,7 @@ function btnTFilesUpload() {
                                         return `<option value="${option.id}" ${option.name.toLowerCase() === cellContent.toLowerCase() ? 'selected' : ''}>${option.name}</option>`;
                                     }).join('');
                                 }
-
-
-                                newRow += `<td contenteditable="true"><select><option value=""></option>${options}</select></td>`;
+                                newRow += `<td><select><option value=""></option>${options}</select></td>`;
                             } else {
 
                                 if (prop === "createdDate") {
@@ -308,6 +306,7 @@ function saveCOEData() {
     $("#emptySubAreaText").css("display", "none");
     $("#emptyTeamText").css("display", "none"); 
     $("#emptyDepartmentText").css("display", "none");
+    $("#emptyDropdownsText").css("display", "none");
 
     var hasEmptySubArea = false; 
     var hasEmptyTeam = false; 
@@ -334,11 +333,15 @@ function saveCOEData() {
             var cellValue = $(this).text();
             var $select = $(this).find('select');
             if ($select.length > 0) {
-                var selectedValue = $select.val(); 
-                if (selectedValue !== null) {
-                    selectedDropdownValues.push(selectedValue);
+                if (columnName === "Stage" || columnName === "Status") {
+                    cellValue = $select.find('option:selected').text();
+                } else {
+                    var selectedValue = $select.val();
+                    if (selectedValue !== null) {
+                        selectedDropdownValues.push(selectedValue);
+                    }
+                    cellValue = selectedValue;
                 }
-                cellValue = selectedValue;
             }
 
             rowData[columnName] = cellValue;
@@ -346,8 +349,8 @@ function saveCOEData() {
 
             var mandatoryCells = ["Name","Description","SubmitterEmailAddress", "Department", "Rule", "InputDateType", "InputDataStructure", "ProcessStability", "DocumentationPresent", "ApplicationStability"];
             if (mandatoryCells.includes(columnName) && (cellValue === null || cellValue.trim() === '')) {
-                $row.css('background-color', 'pink');
-                $(this).css('border', '1px solid red');
+               // $row.css('background-color', 'pink');
+                $(this).css('background-color', 'rgb(255, 228, 225)');
                 $(this).attr('title', 'This Field Is Mandatory');
                 hasEmptyMandatoryCell = true;
             }
@@ -361,17 +364,17 @@ function saveCOEData() {
         var Department = rowData['Department']; 
 
         if (SubArea === null || SubArea.trim() === '') {
-            $row.find('td:nth-child(3)').addBack().css('background-color', 'rgb(255, 228, 225)');
+            $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
             hasEmptySubArea = true;
         }
 
-        if (Team === null || Team.trim() === '') { 
-            $row.find('td:nth-child(4)').addBack().css('background-color', 'rgb(255, 228, 225)');
+        if (Team === null || Team.trim() === '') {
+            $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
             hasEmptyTeam = true;
         }
 
-        if (Department === null || Department.trim() === '') { 
-            $row.find('td:nth-child(5)').addBack().css('background-color', 'rgb(255, 228, 225)');
+        if (Department === null || Department.trim() === '') {
+            $row.find('td:first-child, td:nth-child(2), td:last-child').addBack().css('background-color', 'rgb(255, 228, 225)');
             hasEmptyDepartment = true;
         }
 
@@ -413,9 +416,7 @@ function saveCOEData() {
         return;
     }
 
-   else if (hasEmptyMandatoryCell) {
-        return;
-    }
+   
 
     else if (hasDuplicates) {
         $("#duplicateIdeasText").css("display", hasDuplicates ? "block" : "none");
@@ -453,6 +454,11 @@ function saveCOEData() {
 
     if (hasEmptyDepartment) {
         $("#emptyDepartmentText").css("display", "block");
+        return;
+    }
+
+    else if (hasEmptyMandatoryCell) {
+        $("#emptyDropdownsText").css("display", "block");
         return;
     }
 
